@@ -1,0 +1,1275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Fast French Lab — Day 4</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#F5F0FF;color:#2D1B6B;font-size:16px;min-height:100vh}
+:root{--pu:#6B4EAA;--lpu:#9B8EC4;--lpulight:#EDE8FF;--go:#C68B3C;--golight:#FFF5E6;--gn:#27ae60;--rd:#e74c3c;--gy:#777;--dk:#2D1B6B;--wh:#fff}
+.hdr{background:linear-gradient(135deg,var(--pu),#4a2d8a);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;box-shadow:0 2px 14px rgba(107,78,170,.45)}
+.logo{color:#fff;font-weight:900;font-size:.95rem;letter-spacing:2px}.logo em{color:var(--go);font-style:normal}
+.pill{background:var(--go);color:#fff;font-weight:800;font-size:.75rem;padding:4px 12px;border-radius:20px}
+.prog-wrap{display:flex;flex-direction:column;align-items:center;gap:2px}
+.prog-lbl{color:rgba(255,255,255,.55);font-size:.6rem}
+.prog-track{width:100px;height:6px;background:rgba(255,255,255,.2);border-radius:10px}
+.prog-bar{height:6px;background:var(--go);border-radius:10px;transition:width .5s ease;width:0%}
+.wrap{max-width:680px;margin:0 auto;padding:14px 12px 100px}
+.dots{display:flex;gap:6px;justify-content:center;margin-bottom:16px;flex-wrap:wrap}
+.dot{width:32px;height:32px;border-radius:50%;background:#d8d0f0;color:#888;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:800;cursor:pointer;transition:all .3s;border:2px solid transparent;min-width:44px;min-height:44px}
+.dot.active{background:var(--pu);color:#fff;border-color:var(--go);transform:scale(1.15)}
+.dot.done{background:var(--go);color:#fff}
+.card{background:#fff;border-radius:18px;padding:20px;box-shadow:0 4px 20px rgba(107,78,170,.1);display:none}
+.card.show{display:block;animation:si .35s ease}
+@keyframes si{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.chdr{display:flex;align-items:center;gap:12px;padding-bottom:14px;border-bottom:2px solid var(--lpulight);margin-bottom:18px}
+.cico{width:46px;height:46px;border-radius:12px;background:var(--pu);display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0}
+.ctit{font-size:1.05rem;font-weight:800;color:var(--pu)}
+.csub{font-size:.74rem;color:var(--gy);margin-top:2px;line-height:1.3}
+/* INFO BOXES */
+.gram-box{background:linear-gradient(135deg,var(--pu),#4a2d8a);color:#fff;border-radius:14px;padding:16px;margin-bottom:14px}
+.gram-box h3{color:var(--go);margin-bottom:8px;font-size:.9rem}
+.gram-box p{font-size:.84rem;line-height:1.65}
+.gram-rule{background:rgba(255,255,255,.12);border-radius:9px;padding:8px 12px;margin-top:8px;font-size:.8rem;line-height:1.55}
+.story-box{background:var(--lpulight);border:2px solid var(--lpu);border-radius:16px;padding:18px;margin-bottom:14px}
+.slbl{font-size:.68rem;font-weight:800;color:var(--pu);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+.stext{font-size:.93rem;color:var(--dk);line-height:2.1;font-weight:600}
+.stext .sw{transition:background .15s;border-radius:3px;padding:1px 2px}
+.stext .sw.hl{background:rgba(198,139,60,.4);color:var(--dk);font-weight:900}
+.sen{font-size:.8rem;color:#666;border-top:1px dashed var(--lpu);padding-top:9px;margin-top:9px;line-height:1.65;display:none}
+.sen.show{display:block}
+/* BUTTONS */
+.btn-pu{background:var(--pu);color:#fff;border:none;border-radius:50px;cursor:pointer;font-weight:700;display:inline-flex;align-items:center;gap:5px;transition:all .2s;min-height:44px;padding:0 18px;font-size:.82rem;font-family:inherit}
+.btn-pu:hover{background:#4a2d8a}
+.btn-go{background:var(--go);color:#fff;border:none;border-radius:50px;cursor:pointer;font-weight:700;display:inline-flex;align-items:center;gap:5px;transition:all .2s;min-height:44px;padding:0 18px;font-size:.82rem;font-family:inherit}
+.btn-go:hover{opacity:.88}
+.btn-out{background:#fff;color:var(--pu);border:2px solid var(--pu);border-radius:50px;cursor:pointer;font-weight:700;display:inline-flex;align-items:center;gap:5px;transition:all .2s;min-height:44px;padding:0 16px;font-size:.82rem;font-family:inherit}
+.btn-out:hover{background:var(--pu);color:#fff}
+.btn-gn{background:var(--gn);color:#fff;border:none;border-radius:50px;cursor:pointer;font-weight:700;display:inline-flex;align-items:center;gap:5px;transition:all .2s;min-height:44px;padding:0 18px;font-size:.82rem;font-family:inherit}
+.btn-rd{background:var(--rd);color:#fff;border:none;border-radius:50px;cursor:pointer;font-weight:700;display:inline-flex;align-items:center;gap:5px;transition:all .2s;min-height:44px;padding:0 18px;font-size:.82rem;font-family:inherit}
+.btn-rec{background:var(--rd);color:#fff;border:none;border-radius:50px;min-height:44px;padding:0 18px;font-size:.82rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:all .2s}
+.btn-rec.on{background:#b02020;animation:rp 1.2s ease-in-out infinite}
+@keyframes rp{0%,100%{box-shadow:0 0 0 0 rgba(231,76,60,.4)}50%{box-shadow:0 0 0 10px rgba(231,76,60,0)}}
+.btn-pb{background:var(--gn);color:#fff;border:none;border-radius:50px;min-height:44px;padding:0 18px;font-size:.82rem;font-weight:700;cursor:pointer;display:none;align-items:center;gap:5px}
+.btn-pb.show{display:inline-flex}
+.aud-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center}
+.redo-btn{background:var(--lpulight);color:var(--pu);border:2px solid var(--lpu);border-radius:50px;padding:6px 16px;font-size:.76rem;font-weight:700;cursor:pointer;min-height:40px;margin-top:10px;display:inline-flex;align-items:center;gap:5px;font-family:inherit}
+/* VOCAB CARDS */
+.vgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-bottom:14px}
+@media(min-width:480px){.vgrid{grid-template-columns:repeat(3,1fr)}}
+.vcard{background:var(--lpulight);border-radius:12px;padding:12px;text-align:center;cursor:pointer;transition:all .2s;border:2px solid transparent;position:relative}
+.vcard:hover{border-color:var(--pu);transform:translateY(-2px)}
+.vico{font-size:1.8rem;margin-bottom:4px}
+.vfr{font-size:.85rem;font-weight:800;color:var(--pu)}
+.ven-blur{font-size:.72rem;color:var(--gy);margin-top:2px;filter:blur(4px);transition:filter .3s;cursor:pointer}
+.ven-blur.show{filter:none}
+.vhint{font-size:.6rem;color:var(--lpu);margin-top:2px}
+/* SCENE IMAGES */
+.scene{background:linear-gradient(135deg,var(--lpulight),#f0ebff);border:2px solid var(--lpu);border-radius:16px;padding:16px;margin-bottom:14px;text-align:center}
+.scene-emoji{font-size:3.5rem;margin-bottom:8px;line-height:1}
+.scene-label{font-size:.72rem;font-weight:800;color:var(--pu);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+/* ADJ TABLE */
+.adj-table{width:100%;border-collapse:collapse;font-size:.84rem;margin:12px 0}
+.adj-table th{background:var(--pu);color:#fff;padding:8px 10px;text-align:center;font-size:.78rem}
+.adj-table td{padding:9px 10px;border:1px solid #e0d8f8;text-align:center}
+.adj-table tr:nth-child(even) td{background:var(--lpulight)}
+.mc{color:#1B2B5E;font-weight:800}.fc{color:#c2185b;font-weight:800}
+/* PLURAL */
+.plur-row{background:var(--lpulight);border-radius:12px;padding:12px 14px;margin-bottom:9px;border-left:4px solid var(--go)}
+.plur-fr{font-size:.9rem;font-weight:800;color:var(--dk)}
+.plur-en{font-size:.76rem;color:var(--gy);margin-top:2px}
+/* FILL */
+.fill-wrap{background:var(--lpulight);border-radius:12px;padding:13px;margin-bottom:10px;border:2px solid transparent;transition:border-color .3s}
+.fill-wrap.ok{border-color:var(--gn)}.fill-wrap.bad{border-color:var(--rd)}
+.fill-inp{border:2px solid #c8b8f0;border-radius:8px;padding:6px 11px;font-size:.9rem;font-family:inherit;outline:none;transition:border-color .2s;min-width:80px;max-width:200px;min-height:40px}
+.fill-inp:focus{border-color:var(--pu)}
+.fill-inp.ok{border-color:var(--gn);background:#efffef}
+.fill-inp.bad{border-color:var(--rd);background:#fff0f0}
+.fill-btn{min-height:40px;padding:0 14px;font-size:.78rem;font-weight:700;border:none;border-radius:50px;cursor:pointer;background:var(--pu);color:#fff;margin-top:7px;font-family:inherit}
+.fill-fb{font-size:.78rem;margin-top:6px;font-weight:700;display:none;line-height:1.5}
+/* TROUS */
+.trous-s{background:var(--lpulight);border-radius:12px;padding:12px 14px;margin-bottom:10px;border:2px solid transparent;transition:border-color .3s;font-size:.9rem;color:var(--dk);font-weight:600;line-height:2.2}
+.trous-s.ok{border-color:var(--gn)}.trous-s.bad{border-color:var(--rd)}
+.trous-inp{border:2px solid var(--lpu);border-radius:8px;padding:4px 9px;font-size:.88rem;font-family:inherit;outline:none;display:inline-block;min-width:90px;min-height:38px;vertical-align:middle;transition:border-color .2s}
+.trous-inp:focus{border-color:var(--pu)}
+.trous-inp.ok{border-color:var(--gn);background:#efffef}
+.trous-inp.bad{border-color:var(--rd);background:#fff0f0}
+.trous-fb{font-size:.76rem;margin-top:5px;font-weight:700;display:none}
+/* ERROR CORRECTION */
+.err-line{background:var(--lpulight);border-radius:12px;padding:13px;margin-bottom:10px;border:2px solid transparent}
+.err-line.ok{border-color:var(--gn)}.err-line.bad{border-color:var(--rd)}
+.err-q{font-size:.9rem;color:var(--rd);font-weight:700;text-decoration:line-through var(--rd);margin-bottom:8px}
+.err-inp{width:100%;border:2px solid #c8b8f0;border-radius:8px;padding:8px 12px;font-size:.9rem;font-family:inherit;outline:none;min-height:42px;transition:border-color .2s}
+.err-inp:focus{border-color:var(--pu)}
+.err-inp.ok{border-color:var(--gn);background:#efffef}
+.err-inp.bad{border-color:var(--rd);background:#fff0f0}
+.err-fb{font-size:.78rem;margin-top:6px;font-weight:700;display:none;line-height:1.5}
+/* COPY ACTIVITY */
+.copy-box{background:linear-gradient(135deg,var(--golight),#fff9ef);border:2px solid var(--go);border-radius:14px;padding:15px;margin-bottom:12px}
+.copy-text{font-size:.9rem;font-weight:700;color:var(--dk);margin-bottom:10px;line-height:1.8;letter-spacing:.3px}
+.copy-inp{width:100%;border:2px solid #c8b8f0;border-radius:10px;padding:10px 12px;font-size:.9rem;font-family:inherit;outline:none;min-height:80px;resize:none;transition:border-color .2s;line-height:1.7}
+.copy-inp:focus{border-color:var(--pu)}
+/* UNDERSTAND BAR */
+.ubar{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0}
+.ubtn{border:2px solid var(--lpu);border-radius:50px;padding:8px 12px;font-size:.79rem;font-weight:700;cursor:pointer;background:#fff;color:var(--pu);min-height:42px;transition:all .2s;flex:1;text-align:center;font-family:inherit}
+.ubtn.sel{background:var(--pu);color:#fff}
+/* DIALOGUE */
+.dial-pair{background:var(--lpulight);border-radius:14px;padding:14px;margin-bottom:14px}
+.dial-q-box{background:var(--pu);color:#fff;border-radius:10px;padding:10px 13px;margin-bottom:8px}
+.dq{font-weight:800;font-size:.9rem}
+.dqe{font-size:.74rem;color:rgba(255,255,255,.65);margin-top:2px}
+.dial-a-box{background:#fff;border-radius:10px;padding:10px 13px;border:1px solid var(--lpu)}
+.da{font-weight:700;color:var(--dk);font-size:.88rem}
+.dae{font-size:.74rem;color:var(--gy);margin-top:2px}
+.da-note{font-size:.7rem;color:var(--go);font-weight:700;margin-top:3px}
+/* SIM */
+.sim-q{background:linear-gradient(135deg,var(--pu),#4a2d8a);color:#fff;border-radius:14px;padding:16px;margin-bottom:12px}
+.sim-timer{font-size:2.2rem;font-weight:900;color:var(--go);text-align:center;margin:8px 0;font-variant-numeric:tabular-nums}
+.sim-timer.urgent{color:var(--rd);animation:rp 1s infinite}
+.sim-progress{display:flex;gap:5px;justify-content:center;margin:8px 0}
+.sim-dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.25)}
+.sim-dot.done{background:var(--go)}.sim-dot.current{background:#fff}
+/* WRITING */
+.chunk-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+@media(max-width:400px){.chunk-grid{grid-template-columns:1fr}}
+.chunk{background:var(--lpulight);border-radius:10px;padding:9px 12px;font-size:.8rem;cursor:pointer;border:2px solid transparent;transition:all .2s;font-family:inherit}
+.chunk:hover{border-color:var(--pu)}
+.chunk .cfr{font-weight:800;color:var(--pu)}
+.chunk .cen{color:var(--gy);font-size:.72rem}
+.warea{width:100%;border:2px solid #c8b8f0;border-radius:12px;padding:12px;font-size:.9rem;font-family:inherit;min-height:140px;outline:none;resize:vertical;transition:border-color .2s;line-height:1.7}
+.warea:focus{border-color:var(--pu)}
+/* QUIZ */
+.qwrap{background:#fff;border:2px solid #e0d8f8;border-radius:14px;padding:14px;margin-bottom:12px}
+.qtxt{font-size:.9rem;font-weight:700;color:var(--dk);margin-bottom:10px;line-height:1.4}
+.qopts{display:flex;flex-direction:column;gap:7px}
+.qopt{border:2px solid #e0d8f8;border-radius:10px;padding:11px 14px;cursor:pointer;font-size:.86rem;transition:all .2s;min-height:44px;font-family:inherit}
+.qopt:hover{border-color:var(--pu);background:var(--lpulight)}
+.qopt.co{border-color:var(--gn)!important;background:#efffef;color:#1a8a45;font-weight:700}
+.qopt.wo{border-color:var(--rd)!important;background:#fff0f0;color:#b03030}
+.qopt.sel{border-color:var(--pu);background:var(--lpulight)}
+.qopt.dis{pointer-events:none}
+.qex{margin-top:7px;font-size:.77rem;color:#555;background:var(--lpulight);border-radius:8px;padding:7px 10px;display:none;line-height:1.5}
+.qex.show{display:block}
+.sc-card{text-align:center;padding:22px 14px;border-radius:16px;border:3px solid}
+/* NAV */
+.nav-bar{display:flex;justify-content:space-between;margin-top:20px;gap:8px}
+.btn-nxt{background:var(--pu);color:#fff;border:none;border-radius:50px;padding:0 24px;min-height:46px;font-size:.88rem;font-weight:800;cursor:pointer;transition:all .2s;font-family:inherit}
+.btn-nxt:hover{background:#4a2d8a}
+.btn-prv{background:#fff;color:var(--pu);border:2px solid var(--pu);border-radius:50px;padding:0 20px;min-height:46px;font-size:.85rem;font-weight:700;cursor:pointer;transition:all .2s;font-family:inherit}
+.btn-prv:hover{background:var(--pu);color:#fff}
+/* TCF/TEF badge */
+.exam-badge{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,var(--go),#e5a040);color:#fff;border-radius:50px;padding:5px 14px;font-size:.7rem;font-weight:800;letter-spacing:.5px;margin-bottom:10px}
+/* SS BOX */
+.ss-box{background:var(--golight);border:2px solid var(--go);border-radius:14px;padding:14px;text-align:center;margin-top:14px}
+.ss-box h4{color:var(--pu);font-size:.88rem;margin-bottom:6px}
+.ss-box p{font-size:.76rem;color:var(--gy);line-height:1.5}
+/* MIRROR */
+.mirror-card{background:rgba(107,78,170,.06);border-radius:12px;padding:12px;margin-bottom:9px}
+/* COACH */
+.coach-wrap{position:fixed;bottom:16px;right:14px;z-index:300;display:flex;flex-direction:column;align-items:flex-end}
+.coach-av{width:52px;height:52px;border-radius:50%;background:var(--pu);border:3px solid var(--go);display:flex;align-items:center;justify-content:center;font-size:1.4rem;cursor:pointer;animation:fl 3s ease-in-out infinite;box-shadow:0 4px 16px rgba(107,78,170,.4)}
+@keyframes fl{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.coach-msg{background:#fff;border-radius:14px;border:2px solid var(--go);padding:10px 12px;max-width:210px;margin-bottom:8px;box-shadow:0 3px 16px rgba(107,78,170,.15);font-size:.78rem;color:var(--dk);line-height:1.5;display:none}
+.coach-msg.show{display:block;animation:fu .35s ease}
+@keyframes fu{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div class="logo">FAST <em>FRENCH</em> LAB</div>
+  <div class="prog-wrap"><div class="prog-lbl">DAY 4</div><div class="prog-track"><div class="prog-bar" id="progBar"></div></div></div>
+  <div class="pill">👨‍👩‍👧 DAY 4</div>
+</div>
+<div class="wrap">
+  <div class="dots" id="dotsWrap"></div>
+
+  <!-- ===== ACT 1: LISTENING FIRST ===== -->
+  <div class="card show" id="act1">
+    <div class="chdr"><div class="cico">🎧</div><div><div class="ctit">Listening First — Meet the Martin Family</div><div class="csub">Activity 1 of 7 · Listen before you read. Your ear trains before your eyes.</div></div></div>
+    <div class="exam-badge">🎯 TCF Canada · TEF Canada — Speaking Task 1: Describe your family</div>
+    <div class="gram-box">
+      <h3>🎯 Today's Objective</h3>
+      <p>By the end of Day 4 you will be able to <strong>describe your family members</strong> — their names, ages, jobs, where they live, and what they look like — using adjectives in masculine and feminine forms.</p>
+      <div class="gram-rule">Key vocabulary: family members · personality adjectives · physical adjectives<br>Key grammar: adjective agreement (masculine/feminine) · pluralisation</div>
+    </div>
+    <!-- SCENE -->
+    <div class="scene">
+      <div class="scene-emoji">👨‍👩‍👧‍👦🏠💛</div>
+      <div class="scene-label">📍 Scene: The Martin Family — Paris, France</div>
+      <div style="font-size:.82rem;color:var(--pu);font-weight:600">A French family introducing themselves. Listen carefully to how they describe each other.</div>
+    </div>
+    <!-- PLAYER -->
+    <div class="story-box">
+      <div class="slbl">🎧 Step 1 — Press Play. Just listen. No reading yet.</div>
+      <div style="background:var(--pu);border-radius:14px;padding:14px;margin-bottom:12px">
+        <div style="font-size:.7rem;color:rgba(255,255,255,.5);margin-bottom:8px;text-align:center">La famille Martin — Paris</div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <button id="playBtn" onclick="togglePlay()" style="background:var(--go);color:#fff;border:none;border-radius:50%;width:46px;height:46px;font-size:1.1rem;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center">▶</button>
+          <div style="flex:1">
+            <div style="height:6px;background:rgba(255,255,255,.2);border-radius:10px;cursor:pointer" id="scrubBar" onclick="scrub(event)">
+              <div style="height:6px;background:var(--go);border-radius:10px;width:0%;transition:width .3s" id="scrubFill"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-top:3px;font-size:.64rem;color:rgba(255,255,255,.5)"><span>0:00</span><span>~0:40</span></div>
+          </div>
+          <button onclick="toggleSpeed()" id="speedBtn" style="background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:50px;padding:5px 11px;font-size:.72rem;font-weight:700;cursor:pointer;min-height:34px;font-family:inherit">0.8x</button>
+        </div>
+      </div>
+      <div class="aud-row" style="justify-content:center">
+        <button class="btn-pu" onclick="spkText(FAMILY_STORY,this)">🔊 Normal Speed</button>
+        <button class="btn-out" onclick="spkText(FAMILY_STORY,this,0.52)">🐢 Slow Speed</button>
+      </div>
+      <button class="btn-go" style="width:100%;justify-content:center;margin-top:12px" onclick="showStep2()">👁️ I've Listened — Show the Text →</button>
+    </div>
+
+    <!-- STEP 2 -->
+    <div id="step2box" style="display:none">
+      <div class="story-box">
+        <div class="slbl">👁️ Step 2 — Listen again. Words highlight as you listen.</div>
+        <div class="stext" id="storyTxt"></div>
+        <div class="sen" id="storyEn">Hello! My name is Thomas Martin. I am 42 years old and I am a doctor. I live in Paris with my family. My wife is called Claire. She is 39 years old. She is kind and intelligent. She is a teacher. We have two children: a son and a daughter. My son Louis is 16 years old. He is tall and sporty. My daughter Emma is 12 years old. She is funny and creative. My neighbour is called Monsieur Dupont. He is retired. My best friend is called Marc. He is generous and calm. My colleague Sophie works with me at the hospital. She is serious but very funny!</div>
+        <div class="aud-row" style="flex-wrap:wrap;gap:8px;margin-top:12px">
+          <button class="btn-pu" onclick="syncListen(0.82,this)">🔊 Listen + Follow Text</button>
+          <button class="btn-out" onclick="syncListen(0.52,this)">🐢 Slow + Follow</button>
+          <button class="btn-go" onclick="toggleEn()">👁️ Show/Hide English</button>
+        </div>
+        <!-- MIRROR 1 -->
+        <div style="background:rgba(107,78,170,.08);border-radius:12px;padding:12px;margin-top:12px">
+          <div style="font-size:.74rem;font-weight:800;color:var(--pu);margin-bottom:7px">🎤 Mirror Practice 1 — Shadow the full story:</div>
+          <div class="aud-row">
+            <button class="btn-pu" onclick="spkText(FAMILY_STORY,this)">🔊 Hear</button>
+            <button class="btn-rec" id="m1rec" onclick="dRec('m1rec','m1pb')">🎤 Record</button>
+            <button class="btn-pb" id="m1pb" onclick="pBlob('m1pb')">▶️ Hear Me</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- VERB FILLS -->
+      <div class="story-box">
+        <div class="slbl">✏️ Step 3 — Fill in the Missing Words. Look at the story above!</div>
+        <div id="verbFills"></div>
+        <div class="aud-row" style="margin-top:4px">
+          <button class="btn-gn" onclick="checkVerbFills()">✅ Check Answers</button>
+          <button class="redo-btn" onclick="resetVerbFills()">🔄 Redo</button>
+        </div>
+        <div id="verbFillFb" style="display:none;margin-top:10px;padding:10px 13px;border-radius:10px;font-size:.8rem;font-weight:700"></div>
+      </div>
+
+      <!-- UNDERSTAND BAR -->
+      <div class="story-box">
+        <div class="slbl">💭 How much of the family story did you understand?</div>
+        <div class="ubar" id="ubar1"></div>
+        <div id="ubar1fb" style="display:none;margin-top:8px;font-size:.82rem;font-weight:700;padding:10px 12px;border-radius:10px"></div>
+      </div>
+    </div>
+    <div class="nav-bar"><div></div><button class="btn-nxt" onclick="goAct(2)">Vocabulary →</button></div>
+  </div>
+
+  <!-- ===== ACT 2: VOCABULARY ===== -->
+  <div class="card" id="act2">
+    <div class="chdr"><div class="cico">👨‍👩‍👧</div><div><div class="ctit">Family & People Vocabulary</div><div class="csub">Activity 2 of 7 · Tap to hear · Tap English to reveal · Then blur quiz</div></div></div>
+    <div class="exam-badge">🎯 TEF Canada Speaking — You will be asked to describe your family</div>
+
+    <div style="font-size:.82rem;font-weight:800;color:var(--pu);margin-bottom:10px">👨‍👩‍👧 Immediate Family — Tap to hear, tap 🇬🇧 to reveal English:</div>
+    <div class="vgrid" id="famGrid"></div>
+
+    <div style="font-size:.82rem;font-weight:800;color:var(--pu);margin:14px 0 10px">👥 Extended Family & People Around You:</div>
+    <div class="vgrid" id="extGrid"></div>
+
+    <!-- SCENE: PEOPLE -->
+    <div class="scene" style="margin-top:4px">
+      <div class="scene-emoji">🧑‍🏫👩‍⚕️👨‍💼🏡</div>
+      <div class="scene-label">📍 Common People in French Life</div>
+      <div style="font-size:.8rem;color:var(--pu);font-weight:600">Your professor, neighbour, colleague, and doctor — all described using the same adjective patterns.</div>
+    </div>
+    <div class="vgrid" id="peopleGrid"></div>
+
+    <!-- BLUR QUIZ -->
+    <div style="background:var(--lpulight);border-radius:14px;padding:14px;margin:14px 0">
+      <div style="font-size:.78rem;font-weight:800;color:var(--pu);margin-bottom:8px">🧩 Blur Quiz — Tap to unblur the French:</div>
+      <div class="vgrid" id="blurGrid"></div>
+      <button class="redo-btn" onclick="resetBlur()">🔄 Blur Again & Repeat</button>
+    </div>
+
+    <!-- MIRROR 2 -->
+    <div style="background:rgba(107,78,170,.06);border-radius:12px;padding:12px;margin-bottom:14px">
+      <div style="font-size:.74rem;font-weight:800;color:var(--pu);margin-bottom:7px">🎤 Mirror Practice 2 — Say all family words:</div>
+      <div class="aud-row">
+        <button class="btn-pu" onclick="spkText('mon père, ma mère, mon frère, ma sœur, mon fils, ma fille, mes parents, mes grands-parents, mon ami, ma voisine, mon professeur, mon collègue',this)">🔊 Hear All</button>
+        <button class="btn-rec" id="m2rec" onclick="dRec('m2rec','m2pb')">🎤 Record</button>
+        <button class="btn-pb" id="m2pb" onclick="pBlob('m2pb')">▶️ Hear Me</button>
+      </div>
+    </div>
+
+    <!-- MIRROR 3: LINE BY LINE -->
+    <div style="background:rgba(107,78,170,.06);border-radius:12px;padding:12px;margin-bottom:14px">
+      <div style="font-size:.74rem;font-weight:800;color:var(--pu);margin-bottom:7px">🎤 Mirror Practice 3 — Line by line, family sentences:</div>
+      <div id="lineMir1"></div>
+    </div>
+
+    <div class="nav-bar"><button class="btn-prv" onclick="goAct(1)">← Back</button><button class="btn-nxt" onclick="goAct(3)">Grammar →</button></div>
+  </div>
+
+  <!-- ===== ACT 3: GRAMMAR ===== -->
+  <div class="card" id="act3">
+    <div class="chdr"><div class="cico">📚</div><div><div class="ctit">Adjectives + Pluralisation</div><div class="csub">Activity 3 of 7 · Masculine/Feminine forms · Singular to Plural · Sentence patterns</div></div></div>
+    <div class="exam-badge">🎯 TCF/TEF Canada — C1 writing & speaking rewards adjective accuracy</div>
+
+    <!-- ADJ INTRO -->
+    <div class="gram-box">
+      <h3>Adjectives in French — The Core Rule</h3>
+      <p>In French, adjectives <strong>agree</strong> with the noun they describe. If the noun is masculine, the adjective is masculine. If the noun is feminine, the adjective becomes feminine — usually by adding <strong>-E</strong>.</p>
+      <div class="gram-rule">
+        Mon frère est <strong>grand</strong>. (masculine) → Ma sœur est <strong>grand<em style="color:var(--go)">e</em></strong>. (feminine)<br>
+        Mon ami est <strong>gentil</strong>. (masculine) → Mon amie est <strong>gentil<em style="color:var(--go)">le</em></strong>. (feminine — double L + E)<br>
+        ⭐ The adjective always matches the gender of the person or thing described.
+      </div>
+    </div>
+
+    <!-- SCENE: ADJ -->
+    <div class="scene">
+      <div class="scene-emoji">🧑‍🤝‍🧑💬✨</div>
+      <div class="scene-label">📍 Notice the pattern in real sentences</div>
+    </div>
+
+    <table class="adj-table">
+      <tr><th>Adjective</th><th class="mc">💙 MASCULIN</th><th class="fc">💗 FÉMININ</th><th>English</th></tr>
+      <tr><td>grand</td><td class="mc">grand</td><td class="fc">grand<strong>e</strong></td><td>tall/big</td></tr>
+      <tr><td>petit</td><td class="mc">petit</td><td class="fc">petit<strong>e</strong></td><td>small/short</td></tr>
+      <tr><td>intelligent</td><td class="mc">intelligent</td><td class="fc">intelligent<strong>e</strong></td><td>intelligent</td></tr>
+      <tr><td>gentil</td><td class="mc">gentil</td><td class="fc">genti<strong>lle</strong></td><td>kind</td></tr>
+      <tr><td>sportif</td><td class="mc">sportif</td><td class="fc">sporti<strong>ve</strong></td><td>sporty</td></tr>
+      <tr><td>sérieux</td><td class="mc">sérieux</td><td class="fc">sérieu<strong>se</strong></td><td>serious</td></tr>
+      <tr><td>drôle</td><td class="mc">drôle</td><td class="fc">drôle</td><td>funny (same!)</td></tr>
+      <tr><td>calme</td><td class="mc">calme</td><td class="fc">calme</td><td>calm (same!)</td></tr>
+      <tr><td>beau</td><td class="mc">beau</td><td class="fc">bel<strong>le</strong></td><td>beautiful/handsome</td></tr>
+      <tr><td>généreux</td><td class="mc">généreux</td><td class="fc">générieu<strong>se</strong></td><td>generous</td></tr>
+    </table>
+
+    <div style="background:var(--golight);border:2px solid var(--go);border-radius:12px;padding:12px;margin-bottom:14px;font-size:.8rem;color:var(--dk)">
+      💡 <strong>Position rule (simple version):</strong> In French, most adjectives come <strong>AFTER</strong> the noun.<br>
+      Mon frère <em>grand</em> ❌ → Mon frère est <em>grand</em> ✅ (with être verb)<br>
+      OR: un frère <em>gentil</em> ✅ (directly after noun — no verb needed)
+    </div>
+
+    <!-- MIRROR 4: ADJ FORMS -->
+    <div style="background:rgba(107,78,170,.06);border-radius:12px;padding:12px;margin-bottom:14px">
+      <div style="font-size:.74rem;font-weight:800;color:var(--pu);margin-bottom:7px">🎤 Mirror Practice 4 — Hear adjective pairs, say both forms:</div>
+      <div id="adjMirrors"></div>
+    </div>
+
+    <!-- ADJ PRACTICE -->
+    <div style="font-size:.82rem;font-weight:800;color:var(--pu);margin-bottom:10px">✏️ Adjective Practice — Make it Feminine:</div>
+    <div id="adjFills"></div>
+    <div class="aud-row"><button class="btn-gn" onclick="checkAdj()">✅ Check</button><button class="redo-btn" onclick="resetAdj()">🔄 Redo</button></div>
+    <div id="adjFb" style="display:none;margin-top:8px;padding:10px 13px;border-radius:10px;font-size:.8rem;font-weight:700"></div>
+
+    <!-- PLURALISATION -->
+    <div style="font-size:.88rem;font-weight:800;color:var(--pu);margin:20px 0 10px;padding-top:16px;border-top:2px solid var(--lpulight)">📋 Pluralisation — Singular to Plural</div>
+    <div class="gram-box">
+      <h3>The Simple French Plural Rule</h3>
+      <p>Add <strong>-S</strong> to the noun (like English). Add <strong>-S</strong> to the adjective too. Change <strong>mon/ma</strong> → <strong>mes</strong> · <strong>est</strong> → <strong>sont</strong></p>
+      <div class="gram-rule">
+        Mon frère est grand → Mes frère<strong>s</strong> sont grand<strong>s</strong><br>
+        Ma sœur est intelligente → Mes sœur<strong>s</strong> sont intelligente<strong>s</strong><br>
+        ⚠️ If the adjective already ends in -S or -X, it does NOT change: un fils sérieux → des fils sérieux
+      </div>
+    </div>
+    <div id="plurRows"></div>
+
+    <!-- MIRROR 5 -->
+    <div style="background:rgba(107,78,170,.06);border-radius:12px;padding:12px;margin-top:12px">
+      <div style="font-size:.74rem;font-weight:800;color:var(--pu);margin-bottom:7px">🎤 Mirror Practice 5 — Singular then Plural. Say both versions:</div>
+      <div id="plurMirrors"></div>
+    </div>
+
+    <!-- PLURAL PRACTICE -->
+    <div style="font-size:.82rem;font-weight:800;color:var(--pu);margin:14px 0 10px">✏️ Plural Practice — Change to plural:</div>
+    <div id="plurFills"></div>
+    <div class="aud-row"><button class="btn-gn" onclick="checkPlur()">✅ Check</button><button class="redo-btn" onclick="resetPlur()">🔄 Redo</button></div>
+    <div id="plurFb" style="display:none;margin-top:8px;padding:10px 13px;border-radius:10px;font-size:.8rem;font-weight:700"></div>
+
+    <div class="nav-bar"><button class="btn-prv" onclick="goAct(2)">← Back</button><button class="btn-nxt" onclick="goAct(4)">Error Correction →</button></div>
+  </div>
+
+  <!-- ===== ACT 4: ERROR CORRECTION + TEXTE À TROUS ===== -->
+  <div class="card" id="act4">
+    <div class="chdr"><div class="cico">🔍</div><div><div class="ctit">Spot the Error + Texte à Trous</div><div class="csub">Activity 4 of 7 · Find what's wrong · Then fill the gaps while listening</div></div></div>
+    <div class="exam-badge">🎯 TCF/TEF Canada — Reading: spotting errors is a key C1 skill</div>
+
+    <!-- ERROR CORRECTION -->
+    <div class="gram-box" style="margin-bottom:14px">
+      <h3>🔍 Spot the Error — Correct the Sentence</h3>
+      <p>Each sentence below has one error — a wrong adjective form, a wrong article, or a wrong verb. Type the CORRECT version of the sentence in the box. This is how TCF/TEF Canada trains you to spot grammar mistakes.</p>
+      <div class="gram-rule">💡 Look carefully at: gender agreement · adjective endings · verb forms · articles</div>
+    </div>
+    <div id="errEx"></div>
+    <div class="aud-row"><button class="btn-gn" onclick="checkErrors()">✅ Check Corrections</button><button class="redo-btn" onclick="resetErrors()">🔄 Redo</button></div>
+    <div id="errFb" style="display:none;margin-top:10px;padding:12px;border-radius:12px;font-size:.82rem;font-weight:600;line-height:1.6"></div>
+
+    <!-- MIRROR 6 -->
+    <div style="background:rgba(107,78,170,.06);border-radius:12px;padding:12px;margin:14px 0">
+      <div style="font-size:.74rem;font-weight:800;color:var(--pu);margin-bottom:7px">🎤 Mirror Practice 6 — Read each corrected sentence aloud:</div>
+      <div class="aud-row">
+        <button class="btn-pu" onclick="spkText('Ma sœur est grande et intelligente. Mon frère est sportif et calme. Mes parents sont généreux. Mon amie est gentille et drôle.',this)">🔊 Hear Correct Sentences</button>
+        <button class="btn-rec" id="m6rec" onclick="dRec('m6rec','m6pb')">🎤 Record</button>
+        <button class="btn-pb" id="m6pb" onclick="pBlob('m6pb')">▶️ Hear Me</button>
+      </div>
+    </div>
+
+    <!-- TEXTE À TROUS -->
+    <div style="font-size:.88rem;font-weight:800;color:var(--pu);margin:16px 0 10px;padding-top:16px;border-top:2px solid var(--lpulight)">🎧 Texte à Trous — Listen and Fill the Gaps</div>
+    <div class="gram-box" style="margin-bottom:12px">
+      <h3>How It Works</h3>
+      <p>Listen to the family description. Fill in the missing words as you hear them. Each sentence has 2 missing words. Listen as many times as you need — 3 listens minimum is the rule at A1 level!</p>
+    </div>
+    <div class="aud-row" style="margin-bottom:14px">
+      <button class="btn-pu" onclick="spkText(MARC_STORY,this)">🔊 Listen (Normal)</button>
+      <button class="btn-out" onclick="spkText(MARC_STORY,this,0.52)">🐢 Slow</button>
+    </div>
+    <div id="trousEx"></div>
+    <div class="aud-row"><button class="btn-gn" onclick="checkTrous()">✅ Check Gaps</button><button class="redo-btn" onclick="resetTrous()">🔄 Redo</button></div>
+    <div id="trousFb" style="display:none;margin-top:10px;padding:12px;border-radius:12px;font-size:.84rem;font-weight:700"></div>
+
+    <!-- UNDERSTAND BAR 2 -->
+    <div style="background:var(--lpulight);border-radius:14px;padding:14px;margin-top:14px">
+      <div style="font-size:.78rem;font-weight:800;color:var(--pu);margin-bottom:8px">💭 How much of Marc's family story did you understand?</div>
+      <div class="ubar" id="ubar2"></div>
+      <div id="ubar2fb" style="display:none;margin-top:8px;padding:10px 12px;border-radius:10px;font-size:.8rem;font-weight:700"></div>
+    </div>
+
+    <!-- MIRROR 7 -->
+    <div style="background:rgba(107,78,170,.06);border-radius:12px;padding:12px;margin-top:14px">
+      <div style="font-size:.74rem;font-weight:800;color:var(--pu);margin-bottom:7px">🎤 Mirror Practice 7 — Shadow Marc's family story:</div>
+      <div class="aud-row">
+        <button class="btn-pu" onclick="spkText(MARC_STORY,this)">🔊 Hear</button>
+        <button class="btn-rec" id="m7rec" onclick="dRec('m7rec','m7pb')">🎤 Record</button>
+        <button class="btn-pb" id="m7pb" onclick="pBlob('m7pb')">▶️ Hear Me</button>
+      </div>
+    </div>
+
+    <div class="nav-bar"><button class="btn-prv" onclick="goAct(3)">← Back</button><button class="btn-nxt" onclick="goAct(5)">Copying →</button></div>
+  </div>
+
+  <!-- ===== ACT 5: COPYING + OWN SENTENCES ===== -->
+  <div class="card" id="act5">
+    <div class="chdr"><div class="cico">✍️</div><div><div class="ctit">Copying + Write About YOUR Family</div><div class="csub">Activity 5 of 7 · Copy to train your hand · Then write YOUR real family details</div></div></div>
+
+    <div class="gram-box" style="margin-bottom:14px">
+      <h3>Why Copying Works</h3>
+      <p>Copying French text trains your brain to <strong>see, process, and produce</strong> French simultaneously. Many language learners skip this — but it is one of the most powerful methods for spelling accuracy, especially for the TCF/TEF Canada written section.</p>
+    </div>
+
+    <!-- COPY ACTIVITIES -->
+    <div style="font-size:.82rem;font-weight:800;color:var(--pu);margin-bottom:10px">📝 Copy These Sentences Exactly — Then Hear Them:</div>
+    <div id="copyActivities"></div>
+
+    <!-- MIRROR 8 + 9 -->
+    <div style="background:rgba(107,78,170,.06);border-radius:12px;padding:12px;margin-bottom:14px">
+      <div style="font-size:.74rem;font-weight:800;color:var(--pu);margin-bottom:7px">🎤 Mirror Practice 8 — Read each sentence after copying it:</div>
+      <div id="copyMirrors"></div>
+    </div>
+
+    <!-- OWN SENTENCES -->
+    <div style="font-size:.88rem;font-weight:800;color:var(--pu);margin:16px 0 10px;padding-top:16px;border-top:2px solid var(--lpulight)">👨‍👩‍👧 Write About YOUR Family — Use YOUR real details:</div>
+    <div class="gram-box" style="margin-bottom:12px">
+      <h3>💡 Reminders</h3>
+      <p>Use <strong>avoir</strong> (Day 2) for age: Il a 45 ans<br>Use <strong>être</strong> for descriptions: Il est grand et calme<br>Use masculine adjectives for male family members, feminine for female.</p>
+    </div>
+    <div id="ownSentences"></div>
+    <div class="aud-row">
+      <button class="btn-gn" onclick="checkOwn()">✅ Check & Translate</button>
+      <button class="redo-btn" onclick="resetOwn()">🔄 Try Again</button>
+    </div>
+    <div id="ownFb" style="display:none;margin-top:10px"></div>
+
+    <!-- MIRROR 10 -->
+    <div style="background:rgba(107,78,170,.06);border-radius:12px;padding:12px;margin-top:14px">
+      <div style="font-size:.74rem;font-weight:800;color:var(--pu);margin-bottom:7px">🎤 Mirror Practice 10 — Read YOUR family sentences aloud:</div>
+      <div class="aud-row">
+        <button class="btn-rec" id="m10rec" onclick="dRec('m10rec','m10pb')">🎤 Record My Family</button>
+        <button class="btn-pb" id="m10pb" onclick="pBlob('m10pb')">▶️ Hear Me</button>
+      </div>
+    </div>
+
+    <div class="nav-bar"><button class="btn-prv" onclick="goAct(4)">← Back</button><button class="btn-nxt" onclick="goAct(6)">Dialogue →</button></div>
+  </div>
+
+  <!-- ===== ACT 6: DIALOGUE SIMULATION ===== -->
+  <div class="card" id="act6">
+    <div class="chdr"><div class="cico">💬</div><div><div class="ctit">Dialogue Simulation — Ma Famille</div><div class="csub">Activity 6 of 7 · Practise first · Slow simulation · Fast simulation</div></div></div>
+    <div class="exam-badge">🎯 TCF Canada Speaking Task 1 + TEF Canada — Describe your family</div>
+
+    <!-- SCENE -->
+    <div class="scene">
+      <div class="scene-emoji">🎤📋🇫🇷</div>
+      <div class="scene-label">📍 Exam Context: You are describing your family to an examiner.</div>
+      <div style="font-size:.8rem;color:var(--pu);font-weight:600">In both TCF Canada and TEF Canada, you will be asked to speak about people close to you. Master these answers and you are exam-ready for this topic.</div>
+    </div>
+
+    <div style="font-size:.82rem;font-weight:800;color:var(--pu);margin-bottom:10px">📖 First: Read and listen to all Q&A pairs. Practise BOTH sides.</div>
+    <div id="dialPractice"></div>
+
+    <!-- MIRROR 11 -->
+    <div style="background:rgba(107,78,170,.06);border-radius:12px;padding:12px;margin:14px 0">
+      <div style="font-size:.74rem;font-weight:800;color:var(--pu);margin-bottom:7px">🎤 Mirror Practice 11 + 12 — Practise each answer line by line:</div>
+      <div id="dialMirrors"></div>
+    </div>
+
+    <!-- SLOW SIM -->
+    <div style="font-size:.82rem;font-weight:800;color:var(--pu);margin:16px 0 10px">🐢 Slow Simulation — 15 seconds per question. Answer shown.</div>
+    <div id="simSlow" style="display:none"></div>
+    <button class="btn-pu" onclick="startSim('slow')" id="startSlowBtn" style="width:100%;justify-content:center;min-height:48px">▶️ Start Slow Simulation</button>
+
+    <!-- FAST SIM -->
+    <div style="font-size:.82rem;font-weight:800;color:var(--pu);margin:16px 0 10px">⚡ Fast Simulation — 10 seconds. No answer shown.</div>
+    <div id="simFast" style="display:none"></div>
+    <button class="btn-go" onclick="startSim('fast')" id="startFastBtn" style="width:100%;justify-content:center;min-height:48px">⚡ Start Fast Simulation</button>
+
+    <!-- MIRROR 13 -->
+    <div style="background:rgba(107,78,170,.06);border-radius:12px;padding:12px;margin-top:14px">
+      <div style="font-size:.74rem;font-weight:800;color:var(--pu);margin-bottom:7px">🎤 Mirror Practice 13 — Record YOUR full family dialogue:</div>
+      <div class="aud-row">
+        <button class="btn-rec" id="m13rec" onclick="dRec('m13rec','m13pb')">🎤 Record Full Dialogue</button>
+        <button class="btn-pb" id="m13pb" onclick="pBlob('m13pb')">▶️ Hear Me</button>
+      </div>
+    </div>
+
+    <div class="nav-bar"><button class="btn-prv" onclick="goAct(5)">← Back</button><button class="btn-nxt" onclick="goAct(7)">Writing →</button></div>
+  </div>
+
+  <!-- ===== ACT 7: WRITING + QUIZ ===== -->
+  <div class="card" id="act7">
+    <div class="chdr"><div class="cico">✍️</div><div><div class="ctit">Writing Challenge + Day 4 Quiz</div><div class="csub">Activity 7 of 7 · Write about your family · Then take the quiz</div></div></div>
+    <div class="exam-badge">🎯 TCF Canada Tâche 1 Speaking + TEF Canada Writing Section</div>
+
+    <div class="gram-box" style="margin-bottom:14px">
+      <h3>Your Writing Outline — Include ALL of these:</h3>
+      <p>1. How many people are in your family<br>2. Describe one family member: age, job, personality (2–3 adjectives)<br>3. Describe another: physical appearance<br>4. Mention a friend or neighbour<br>5. Use masculine AND feminine adjective forms</p>
+    </div>
+
+    <!-- WORD CHUNKS -->
+    <div style="font-size:.78rem;font-weight:800;color:var(--pu);margin-bottom:8px">📐 Sentence Chunks — Tap to add to your writing:</div>
+    <div class="chunk-grid" id="chunkGrid"></div>
+
+    <!-- NEW VOCAB -->
+    <div style="font-size:.78rem;font-weight:800;color:var(--pu);margin:12px 0 8px">📚 Today's Vocabulary Bank — Tap to hear:</div>
+    <div id="vocabBank" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px"></div>
+
+    <!-- TIMER -->
+    <div style="text-align:center;margin-bottom:8px;font-size:.8rem;color:var(--pu);font-weight:700">⏱️ 4-minute writing timer:</div>
+    <div id="timerDisp" style="font-size:2.5rem;font-weight:900;color:var(--pu);text-align:center;margin-bottom:6px;font-variant-numeric:tabular-nums">4:00</div>
+    <div style="height:8px;background:#e0d8f8;border-radius:10px;margin-bottom:12px"><div id="timerBar" style="height:8px;background:var(--go);border-radius:10px;transition:width 1s linear;width:100%"></div></div>
+    <div style="display:flex;gap:8px;justify-content:center;margin-bottom:14px;flex-wrap:wrap">
+      <button class="btn-pu" id="timerStart" onclick="startTimer()">▶️ Start Timer</button>
+      <button class="btn-out" id="timerReset" onclick="resetTimer()" style="display:none">🔄 Reset</button>
+    </div>
+
+    <textarea class="warea" id="wArea" placeholder="Écrivez ici... (Write about your family in French)" oninput="updateWC()"></textarea>
+    <div style="font-size:.72rem;color:var(--gy);text-align:right;margin-top:3px" id="wCount">0 words</div>
+
+    <div class="aud-row" style="justify-content:center;margin-top:10px">
+      <button class="btn-gn" onclick="checkWriting()">✅ Check Grammar</button>
+    </div>
+    <div id="writeFb" style="display:none;margin-top:10px;padding:13px;border-radius:12px;font-size:.82rem;line-height:1.6;font-weight:600"></div>
+
+    <!-- MIRROR 14 + 15 -->
+    <div style="background:rgba(107,78,170,.06);border-radius:12px;padding:12px;margin-top:14px">
+      <div style="font-size:.74rem;font-weight:800;color:var(--pu);margin-bottom:7px">🎤 Mirror Practice 14 — Hear a model paragraph, then record yours:</div>
+      <div class="aud-row">
+        <button class="btn-pu" onclick="spkText('Dans ma famille, nous sommes quatre. Mon père s appelle Jean. Il a cinquante ans. Il est médecin. Il est grand et sérieux mais très gentil. Ma mère s appelle Marie. Elle est professeure. Elle est intelligente et drôle. Mon ami s appelle Marc. Il est calme et généreux.',this)">🔊 Hear Model</button>
+        <button class="btn-rec" id="m14rec" onclick="dRec('m14rec','m14pb')">🎤 Record Mine</button>
+        <button class="btn-pb" id="m14pb" onclick="pBlob('m14pb')">▶️ Hear Me</button>
+      </div>
+    </div>
+    <div style="background:rgba(107,78,170,.06);border-radius:12px;padding:12px;margin-top:10px">
+      <div style="font-size:.74rem;font-weight:800;color:var(--pu);margin-bottom:7px">🎤 Mirror Practice 15 — Line by line model sentences:</div>
+      <div id="finalMirrors"></div>
+    </div>
+
+    <!-- SCREENSHOT -->
+    <div class="ss-box">
+      <h4>📸 Screenshot Your Writing NOW</h4>
+      <p>Take a screenshot of your paragraph. Then tap below to copy your text and post it in the community as a voice note or video. Coach Linda will respond!<br><br>📱 <strong>iPhone:</strong> Side + Volume Up · <strong>Android:</strong> Power + Volume Down</p>
+      <button class="btn-go" style="margin-top:10px;min-height:46px" onclick="copyWriting()">📋 Copy My Writing</button>
+      <div id="copyFb" style="display:none;margin-top:8px;font-size:.78rem;color:var(--gn);font-weight:700">✅ Copied! Go to the community, paste it and record a voice note. Your coach is waiting!</div>
+    </div>
+
+    <!-- QUIZ -->
+    <div style="font-size:.88rem;font-weight:800;color:var(--pu);margin:20px 0 12px;padding-top:16px;border-top:2px solid var(--lpulight)">📝 Day 4 Quiz — Score 5/6 to complete:</div>
+    <div id="quizContent"></div>
+    <div id="scoreCard" style="display:none"></div>
+    <div class="nav-bar" style="margin-top:14px">
+      <button class="btn-prv" onclick="goAct(6)">← Back</button>
+      <button class="btn-nxt" id="btnSub" onclick="submitQuiz()">✅ Submit Quiz</button>
+    </div>
+  </div>
+</div>
+
+<div class="coach-wrap">
+  <div class="coach-msg" id="coachMsg"></div>
+  <div class="coach-av" onclick="toggleCoach()">👩🏾‍🏫</div>
+</div>
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+const FAMILY_STORY="Bonjour! Je m'appelle Thomas Martin. J'ai quarante-deux ans et je suis médecin. J'habite à Paris avec ma famille. Ma femme s'appelle Claire. Elle a trente-neuf ans. Elle est gentille et intelligente. Elle est professeure. Nous avons deux enfants: un fils et une fille. Mon fils Louis a seize ans. Il est grand et sportif. Ma fille Emma a douze ans. Elle est drôle et créative. Mon voisin s'appelle Monsieur Dupont. Il est retraité. Mon meilleur ami s'appelle Marc. Il est généreux et calme. Ma collègue Sophie travaille avec moi à l'hôpital. Elle est sérieuse mais très drôle!";
+const FAMILY_WORDS=FAMILY_STORY.split(' ');
+
+const MARC_STORY="Bonjour! Je m'appelle Marc. J'ai trente-cinq ans. Je suis ingénieur. Ma mère est grande et intelligente. Mon père est calme et généreux. Ma sœur est drôle et créative. Elle a vingt ans. Mon frère est sportif et sérieux. Mes parents sont gentils. Mon ami est professeur. Il est sympa et patient.";
+
+const VERB_FILLS=[
+  {before:"Je m'appelle Thomas. J'ai quarante-deux ans et je suis ",blank:"médecin",after:"."},
+  {before:"Ma femme s'appelle Claire. Elle est ",blank:"gentille",after:" et intelligente."},
+  {before:"Mon fils Louis a seize ans. Il est grand et ",blank:"sportif",after:"."},
+  {before:"Ma fille Emma est drôle et ",blank:"créative",after:"."},
+  {before:"Mon meilleur ami Marc est généreux et ",blank:"calme",after:"."}
+];
+
+const FAM_VOCAB=[
+  {ico:"👨",fr:"mon père",en:"my father",ac:"am"},{ico:"👩",fr:"ma mère",en:"my mother",ac:"af"},
+  {ico:"👦",fr:"mon frère",en:"my brother",ac:"am"},{ico:"👧",fr:"ma sœur",en:"my sister",ac:"af"},
+  {ico:"👶",fr:"mon fils",en:"my son",ac:"am"},{ico:"👶",fr:"ma fille",en:"my daughter",ac:"af"},
+  {ico:"👴",fr:"mon grand-père",en:"my grandfather",ac:"am"},{ico:"👵",fr:"ma grand-mère",en:"my grandmother",ac:"af"},
+  {ico:"💑",fr:"mes parents",en:"my parents",ac:"am"},{ico:"🤵",fr:"mon mari",en:"my husband",ac:"am"},
+  {ico:"👰",fr:"ma femme",en:"my wife",ac:"af"},{ico:"👨‍👩‍👧‍👦",fr:"ma famille",en:"my family",ac:"af"}
+];
+const EXT_VOCAB=[
+  {ico:"👨‍👦",fr:"mon oncle",en:"my uncle",ac:"am"},{ico:"👩‍👧",fr:"ma tante",en:"my aunt",ac:"af"},
+  {ico:"🧒",fr:"mon cousin",en:"my cousin (m)",ac:"am"},{ico:"👧",fr:"ma cousine",en:"my cousin (f)",ac:"af"},
+  {ico:"👶",fr:"mon neveu",en:"my nephew",ac:"am"},{ico:"👧",fr:"ma nièce",en:"my niece",ac:"af"},
+  {ico:"🤝",fr:"mon ami",en:"my friend (m)",ac:"am"},{ico:"🤝",fr:"mon amie",en:"my friend (f)",ac:"af"}
+];
+const PEOPLE_VOCAB=[
+  {ico:"🧑‍🏫",fr:"mon professeur",en:"my teacher",ac:"am"},{ico:"🏘️",fr:"mon voisin",en:"my neighbour (m)",ac:"am"},
+  {ico:"🏘️",fr:"ma voisine",en:"my neighbour (f)",ac:"af"},{ico:"💼",fr:"mon collègue",en:"my colleague (m)",ac:"am"},
+  {ico:"💼",fr:"ma collègue",en:"my colleague (f)",ac:"af"},{ico:"👨‍⚕️",fr:"mon médecin",en:"my doctor",ac:"am"}
+];
+const BLUR_VOCAB=[...FAM_VOCAB.slice(0,6),...PEOPLE_VOCAB.slice(0,4)];
+const LINE_MIR1=[
+  {fr:"Mon père s'appelle Jean.",en:"My father's name is Jean."},
+  {fr:"Ma mère est intelligente.",en:"My mother is intelligent."},
+  {fr:"Mon frère est grand et sportif.",en:"My brother is tall and sporty."},
+  {fr:"Ma sœur est drôle et créative.",en:"My sister is funny and creative."}
+];
+const ADJ_FILLS=[
+  {q:"Mon frère est grand. → Ma sœur est ___.",ans:"grande",hint:"grand → grande (add -e)"},
+  {q:"Mon ami est sportif. → Mon amie est ___.",ans:"sportive",hint:"sportif → sportive (f becomes v, add -e)"},
+  {q:"Mon père est sérieux. → Ma mère est ___.",ans:"sérieuse",hint:"sérieux → sérieuse (-x becomes -se)"},
+  {q:"Mon collègue est généreux. → Ma collègue est ___.",ans:"généreuse",hint:"généreux → généreuse (-x becomes -se)"},
+  {q:"Mon cousin est gentil. → Ma cousine est ___.",ans:"gentille",hint:"gentil → gentille (double L + e)"}
+];
+const PLUR_DATA=[
+  {sing:"Mon frère est grand.",plur:"Mes frères sont grands.",singEn:"My brother is tall.",plurEn:"My brothers are tall."},
+  {sing:"Ma sœur est intelligente.",plur:"Mes sœurs sont intelligentes.",singEn:"My sister is intelligent.",plurEn:"My sisters are intelligent."},
+  {sing:"Mon ami est calme.",plur:"Mes amis sont calmes.",singEn:"My friend is calm.",plurEn:"My friends are calm."},
+  {sing:"Ma voisine est gentille.",plur:"Mes voisines sont gentilles.",singEn:"My neighbour is kind.",plurEn:"My neighbours are kind."}
+];
+const PLUR_FILLS=[
+  {q:"Mon frère est sportif. → Mes frères sont ___.",ans:"sportifs",hint:"Add -s to sportif → sportifs"},
+  {q:"Ma sœur est drôle. → Mes sœurs sont ___.",ans:"drôles",hint:"Add -s to drôle → drôles"},
+  {q:"Mon ami est sérieux. → Mes amis sont ___.",ans:"sérieux",hint:"Already ends in -x — does NOT change! sérieux stays sérieux"}
+];
+const ERR_EX=[
+  {wrong:"Ma frère est grand et sportif.",correct:"Mon frère est grand et sportif.",explanation:"'Frère' is masculine → mon frère (not ma frère)"},
+  {wrong:"Ma sœur est grand et intelligente.",correct:"Ma sœur est grande et intelligente.",explanation:"Sœur is feminine → adjective must be feminine: grande (not grand)"},
+  {wrong:"Mes parents sont gentil.",correct:"Mes parents sont gentils.",explanation:"Plural subject → adjective must be plural: gentils (not gentil)"},
+  {wrong:"Mon amie est sportif.",correct:"Mon amie est sportive.",explanation:"Amie is feminine → sportive (not sportif). Also: mon amie (vowel sound uses mon even for feminine)"}
+];
+const TROUS=[
+  {before:"Je m'appelle Marc. J'ai trente-cinq ",b1:"ans",mid:". Je suis ",b2:"ingénieur",after:".",h1:"age unit in French",h2:"his job — engineer"},
+  {before:"Ma mère est grande et ",b1:"intelligente",mid:". Mon père est calme et ",b2:"généreux",after:".",h1:"intelligent (feminine form)",h2:"generous (masculine)"},
+  {before:"Ma sœur est drôle et ",b1:"créative",mid:". Elle a ",b2:"vingt",after:" ans.",h1:"creative (feminine form)",h2:"the number 20"},
+  {before:"Mon frère est sportif et ",b1:"sérieux",mid:". Mes parents sont ",b2:"gentils",after:".",h1:"serious (masculine)",h2:"kind (masculine plural)"},
+  {before:"Mon ami est ",b1:"professeur",mid:". Il est sympa et ",b2:"patient",after:".",h1:"his job — teacher",h2:"patient (masculine adj)"}
+];
+const ADJ_MIRRORS=[
+  {fr:"grand / grande",en:"tall (m) / tall (f)"},
+  {fr:"sportif / sportive",en:"sporty (m) / sporty (f)"},
+  {fr:"gentil / gentille",en:"kind (m) / kind (f)"},
+  {fr:"sérieux / sérieuse",en:"serious (m) / serious (f)"}
+];
+const PLUR_MIRRORS=[
+  {fr:"Mon frère est grand. → Mes frères sont grands.",en:"My brother is tall. → My brothers are tall."},
+  {fr:"Ma sœur est gentille. → Mes sœurs sont gentilles.",en:"My sister is kind. → My sisters are kind."}
+];
+const COPY_TEXTS=[
+  {text:"Mon père s'appelle Jean. Il a cinquante ans. Il est médecin. Il est grand et sérieux.",en:"My father's name is Jean. He is 50. He is a doctor. He is tall and serious."},
+  {text:"Ma mère s'appelle Marie. Elle est professeure. Elle est intelligente et très gentille.",en:"My mother's name is Marie. She is a teacher. She is intelligent and very kind."},
+  {text:"Mon meilleur ami s'appelle Marc. Il est calme, généreux et drôle.",en:"My best friend's name is Marc. He is calm, generous and funny."}
+];
+const COPY_MIRRORS=[
+  {fr:"Mon père s'appelle Jean. Il a cinquante ans.",en:"My father's name is Jean. He is 50."},
+  {fr:"Ma mère est intelligente et très gentille.",en:"My mother is intelligent and very kind."},
+  {fr:"Mon meilleur ami est calme et généreux.",en:"My best friend is calm and generous."}
+];
+const OWN_SENTS=[
+  {prompt:"Mon/Ma [family member] s'appelle ",hint:"Write their first name — e.g. Jean, Marie, Amara",ex:"Mon père s'appelle Jean"},
+  {prompt:"Il/Elle a ",hint:"Write their age + ans — e.g. quarante-cinq ans",ex:"Il a quarante-cinq ans"},
+  {prompt:"Il/Elle est ",hint:"Write their job — médecin, professeur, ingénieur, infirmier/ère...",ex:"Il est médecin"},
+  {prompt:"Il/Elle est ",hint:"Write 2 adjectives — check gender! e.g. grand et calme OR grande et gentille",ex:"Il est grand et calme"},
+  {prompt:"Mon ami(e) / Mon voisin(e) s'appelle ",hint:"A friend or neighbour — describe them too!",ex:"Mon ami s'appelle Marc. Il est drôle."}
+];
+const DIALOGUES=[
+  {q:"Vous avez des frères et sœurs?",qe:"Do you have brothers and sisters?",a:"Oui, j'ai un frère et une sœur. Mon frère s'appelle Chidi. Il a vingt ans.",ae:"Yes, I have a brother and a sister. My brother's name is Chidi. He is 20.",note:"Start with: Oui/Non, j'ai... Always give a name and an age."},
+  {q:"Comment est votre père?",qe:"What is your father like?",a:"Mon père est grand et calme. Il est très généreux. Il est ingénieur.",ae:"My father is tall and calm. He is very generous. He is an engineer.",note:"TCF/TEF tip: give 2 adjectives + profession = higher score."},
+  {q:"Et votre mère, elle fait quoi?",qe:"And your mother, what does she do?",a:"Ma mère est professeure. Elle est intelligente et très drôle.",ae:"My mother is a teacher. She is intelligent and very funny.",note:"Match adjective gender: professeure is feminine → intelligente, drôle."},
+  {q:"Vous avez des enfants?",qe:"Do you have children?",a:"Non, je n'ai pas d'enfants. Mais j'ai deux neveux et une nièce.",ae:"No, I don't have children. But I have two nephews and a niece.",note:"Non, je n'ai pas de... is a key negative structure for TCF."},
+  {q:"Votre meilleur ami, il est comment?",qe:"What is your best friend like?",a:"Mon meilleur ami s'appelle Marc. Il est sportif, calme et très sympa.",ae:"My best friend's name is Marc. He is sporty, calm and very nice.",note:"Sympa (nice) is the same for masculine and feminine!"}
+];
+const CHUNKS=[
+  {fr:"Dans ma famille, nous sommes...",en:"In my family, there are..."},
+  {fr:"Mon/Ma ... s'appelle...",en:"My ... is called..."},
+  {fr:"Il/Elle a ... ans.",en:"He/She is ... years old."},
+  {fr:"Il/Elle est [profession].",en:"He/She is a [job]."},
+  {fr:"Il est [adj masc] et [adj masc].",en:"He is [adj] and [adj]."},
+  {fr:"Elle est [adj fém] et [adj fém].",en:"She is [adj] and [adj]."},
+  {fr:"Mes ... sont [adj plural].",en:"My ... are [adj]."},
+  {fr:"Mon meilleur ami s'appelle...",en:"My best friend's name is..."}
+];
+const VOCAB_BANK=[
+  {fr:"sympa",en:"nice/friendly"},{fr:"patient(e)",en:"patient"},
+  {fr:"timide",en:"shy"},{fr:"courageux/courageuse",en:"brave"},
+  {fr:"travailleur/travailleuse",en:"hardworking"},{fr:"retraité(e)",en:"retired"},
+  {fr:"célibataire",en:"single"},{fr:"marié(e)",en:"married"},
+  {fr:"le/la meilleur(e) ami(e)",en:"best friend"},{fr:"depuis longtemps",en:"for a long time"}
+];
+const FINAL_MIRRORS=[
+  {fr:"Dans ma famille, nous sommes quatre.",en:"In my family, there are four of us."},
+  {fr:"Mon père est grand et très calme.",en:"My father is tall and very calm."},
+  {fr:"Ma mère est intelligente et drôle.",en:"My mother is intelligent and funny."},
+  {fr:"Mes parents sont très gentils.",en:"My parents are very kind."},
+  {fr:"Mon ami est sportif et généreux.",en:"My friend is sporty and generous."}
+];
+const QUIZ_DATA=[
+  {q:"How do you say 'My sister is kind' in French?",opts:["Ma sœur est gentil","Ma sœur est gentille","Mon sœur est gentille","Ma sœur est gentils"],ans:1,exp:"✅ Ma sœur (feminine) → adjective must be feminine: gentille (not gentil). Ma sœur est gentille."},
+  {q:"Change to plural: 'Mon frère est grand.' →",opts:["Mes frères sont grand","Mes frères sont grands","Mon frères sont grands","Mes frère sont grands"],ans:1,exp:"✅ Mes frères sont grands — mon→mes, frère→frères, est→sont, grand→grands (plural adjective adds -s)."},
+  {q:"Which is the correct feminine form of 'sportif'?",opts:["sportife","sportiff","sportive","sportife"],ans:2,exp:"✅ Sportif → sportive. When -if, change to -ive: sportif/sportive, actif/active."},
+  {q:"'Mon amie est intelligente.' Why is it MON (not MA) amie?",opts:["Amie is masculine","It's a mistake","Before vowel sounds, use mon even for feminine nouns","French has no rules"],ans:2,exp:"✅ Before a vowel sound, mon is used instead of ma even for feminine nouns: mon amie, mon adresse. This avoids two vowel sounds together."},
+  {q:"Which sentence is CORRECT?",opts:["Mes sœurs sont intelligente","Mes sœurs sont intelligentes","Ma sœurs sont intelligentes","Mes sœur sont intelligentes"],ans:1,exp:"✅ Mes sœurs sont intelligentes — all parts must agree: mes (plural possessive), sœurs (plural noun), sont (plural verb), intelligentes (plural feminine adjective)."},
+  {q:"'Il est médecin' means:",opts:["He is the doctor","He is a doctor","His doctor","He has a doctor"],ans:1,exp:"✅ In French, for professions after être, you do NOT use an article: Il est médecin (not Il est UN médecin). This is different from English!"}
+];
+
+// ============================================================
+// STATE
+// ============================================================
+let curAct=1,cTimer=null,timerSec=240,timerInterval=null,timerOn=false;
+let qzSel=new Array(QUIZ_DATA.length).fill(null),qzDone=false;
+let blobs={},mediaRecs={};
+let step2Vis=false,enVis=false;
+let simMode=null,simIdx=0,simTimerInt=null;
+
+// ============================================================
+// SPEECH
+// ============================================================
+function getVoice(){
+  const vs=window.speechSynthesis.getVoices();
+  return vs.find(v=>v.lang==='fr-FR')||vs.find(v=>v.lang.startsWith('fr'))||null;
+}
+function spkText(t,btn,rate){
+  window.speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(t);
+  const v=getVoice();if(v)u.voice=v;u.lang='fr-FR';u.rate=rate||0.82;u.pitch=1.02;
+  if(btn&&btn.classList){btn.classList.add('playing');u.onend=()=>btn.classList.remove('playing');}
+  window.speechSynthesis.speak(u);
+}
+
+let syncInt=null;
+function syncListen(rate,btn){
+  if(syncInt)clearInterval(syncInt);window.speechSynthesis.cancel();
+  const el=document.getElementById('storyTxt');
+  el.innerHTML=FAMILY_WORDS.map((w,i)=>`<span class="sw" id="sw${i}">${w} </span>`).join('');
+  const ms=rate>0.7?420:700;
+  const u=new SpeechSynthesisUtterance(FAMILY_STORY);
+  const v=getVoice();if(v)u.voice=v;u.lang='fr-FR';u.rate=rate;
+  if(btn&&btn.classList){btn.classList.add('playing');u.onend=()=>btn.classList.remove('playing');}
+  window.speechSynthesis.speak(u);
+  let idx=0;
+  syncInt=setInterval(()=>{
+    document.querySelectorAll('.sw').forEach(s=>s.classList.remove('hl'));
+    if(idx<FAMILY_WORDS.length){const sw=document.getElementById('sw'+idx);if(sw){sw.classList.add('hl');sw.scrollIntoView({block:'nearest',behavior:'smooth'});}idx++;}
+    else clearInterval(syncInt);
+  },ms);
+}
+
+function showStep2(){
+  step2Vis=true;document.getElementById('step2box').style.display='block';
+  document.getElementById('storyTxt').innerHTML=FAMILY_WORDS.map((w,i)=>`<span class="sw" id="sw${i}">${w} </span>`).join('');
+  showCoach('🎉 Great! Now listen again and follow the text. Then fill in the missing words below!',6000);
+  document.getElementById('step2box').scrollIntoView({behavior:'smooth'});
+}
+function toggleEn(){enVis=!enVis;document.getElementById('storyEn').classList.toggle('show',enVis);}
+function togglePlay(){const b=document.getElementById('playBtn');b.textContent=b.textContent==='▶'?'⏸':'▶';}
+function scrub(e){const bar=document.getElementById('scrubBar');document.getElementById('scrubFill').style.width=(e.offsetX/bar.offsetWidth*100)+'%';}
+function toggleSpeed(){const b=document.getElementById('speedBtn');b.textContent=b.textContent==='0.8x'?'0.5x':'0.8x';}
+
+// ============================================================
+// VERB FILLS
+// ============================================================
+function renderVerbFills(){
+  document.getElementById('verbFills').innerHTML=VERB_FILLS.map((f,i)=>`
+    <div class="fill-wrap" id="vfw${i}" style="margin-bottom:9px">
+      <div style="font-size:.88rem;color:var(--dk);font-weight:600;line-height:1.8">${f.before}<input class="fill-inp" id="vfi${i}" placeholder="?" autocomplete="off" autocorrect="off" spellcheck="false">${f.after}</div>
+    </div>`).join('');
+}
+function checkVerbFills(){
+  let ok=0;
+  VERB_FILLS.forEach((f,i)=>{
+    const v=document.getElementById('vfi'+i).value.trim().toLowerCase(),good=v===f.blank.toLowerCase();
+    document.getElementById('vfi'+i).classList.toggle('ok',good);document.getElementById('vfi'+i).classList.toggle('bad',!good);
+    if(good)ok++;
+  });
+  const fb=document.getElementById('verbFillFb');fb.style.display='block';
+  const all=ok===VERB_FILLS.length;
+  fb.style.background=all?'#efffef':'#FFF9EC';fb.style.color=all?'#1a8a45':'#8a5c00';
+  fb.textContent=all?'🎉 Excellent! All words correct — you are reading French like a student!':'✅ '+ok+'/'+VERB_FILLS.length+' correct. Look at the story text above for the missing words. Try again!';
+  showCoach(all?'🌟 Parfait! All correct!':'💪 '+ok+' correct. The words are in the story above — have another look!',4500);
+}
+function resetVerbFills(){VERB_FILLS.forEach((_,i)=>{const inp=document.getElementById('vfi'+i);inp.value='';inp.className='fill-inp';});document.getElementById('verbFillFb').style.display='none';showCoach('🔄 Reset! Try the words again.',3000);}
+
+// UNDERSTAND BAR
+function renderUbar(id,fbId){
+  const opts=[{l:"😕 Not much",v:1},{l:"🤔 A little",v:2},{l:"🙂 Most of it",v:3},{l:"🎉 Almost all!",v:4}];
+  document.getElementById(id).innerHTML=opts.map((o,i)=>`<button class="ubtn" id="${id}b${i}" onclick="selectUbar('${id}','${fbId}',${o.v},${i})">${o.l}</button>`).join('');
+}
+function selectUbar(uid,fbId,v,idx){
+  document.querySelectorAll('#'+uid+' .ubtn').forEach(b=>b.classList.remove('sel'));document.getElementById(uid+'b'+idx).classList.add('sel');
+  const fb=document.getElementById(fbId);fb.style.display='block';
+  const m={1:{bg:'#fff0f0',c:'#b03030',t:"That's totally normal at A1! French learners need 3 listens minimum. Press listen again — each time you catch more words."},
+    2:{bg:'#FFF9EC',c:'#8a5c00',t:"Good progress! Listen one more time and check the vocabulary in Activity 2 for words you missed."},
+    3:{bg:'#e8fff0',c:'#1a8a45',t:"🎉 Excellent! You are developing a real French ear. One more listen to catch the last details."},
+    4:{bg:'#efffef',c:'#1a8a45',t:"🏆 FÉLICITATIONS! Understanding almost everything is a massive achievement at A1. Your ear is training fast!"}};
+  fb.style.background=m[v].bg;fb.style.color=m[v].c;fb.textContent=m[v].t;
+  showCoach(v<=2?'💡 Listen 3 times — that is the rule for A1 learners. Press listen again!':'🌟 Your comprehension is growing! Keep this up.',4500);
+}
+
+// ============================================================
+// VOCAB GRIDS
+// ============================================================
+function renderVocabGrids(){
+  const rend=(id,items,blur)=>document.getElementById(id).innerHTML=items.map((v,i)=>`
+    <div class="vcard" onclick="${blur?`unblurV(${i},'${id}','${v.fr.replace(/'/g,"\\'")}')`:``}spkText('${v.fr.replace(/'/g,"\\'")}',null)">
+      <div class="vico">${v.ico}</div>
+      <div class="vfr" ${blur?'style="filter:blur(5px);transition:filter .3s"':''} id="${blur?id+'f'+i:''}">${v.fr}</div>
+      <div class="${blur?'ven-blur':'ven-blur show'}" id="${blur?id+'e'+i:''}" onclick="${blur?`event.stopPropagation();revealEn(${i},'${id}')`:''}">${blur?'🇬🇧 tap':v.en}</div>
+    </div>`).join('');
+  rend('famGrid',FAM_VOCAB,false);rend('extGrid',EXT_VOCAB,false);rend('peopleGrid',PEOPLE_VOCAB,false);
+  // Blur grid
+  document.getElementById('blurGrid').innerHTML=BLUR_VOCAB.map((v,i)=>`
+    <div class="vcard" id="blv${i}" onclick="unblurCard(${i},'${v.fr.replace(/'/g,"\\'")}')">
+      <div class="vico">${v.ico}</div>
+      <div class="vfr" style="filter:blur(5px);transition:filter .3s" id="blvf${i}">${v.fr}</div>
+      <div class="ven-blur" id="blve${i}">${v.en}</div>
+    </div>`).join('');
+}
+function revealEn(i,grid){const el=document.getElementById(grid+'e'+i);if(el)el.classList.toggle('show');}
+function unblurCard(i,fr){
+  document.getElementById('blvf'+i).style.filter='none';
+  document.getElementById('blve'+i).classList.add('show');
+  spkText(fr,null);showCoach('🔊 '+fr+' — say it back!',3000);
+}
+function resetBlur(){BLUR_VOCAB.forEach((_,i)=>{document.getElementById('blvf'+i).style.filter='blur(5px)';document.getElementById('blve'+i).classList.remove('show');});showCoach('🔄 All blurred again! Can you remember them?',3500);}
+
+// LINE MIRRORS
+function renderLineMirrors(id,data){
+  document.getElementById(id).innerHTML=data.map((l,i)=>`
+    <div class="mirror-card">
+      <div style="font-weight:800;color:var(--pu);font-size:.86rem">${l.fr}</div>
+      <div style="font-size:.73rem;color:var(--gy);margin-top:2px">${l.en}</div>
+      <div class="aud-row" style="margin-top:7px;gap:6px">
+        <button class="btn-pu" style="min-height:38px;padding:0 12px;font-size:.74rem" onclick="spkText('${l.fr.replace(/'/g,"\\'")}',this)">🔊</button>
+        <button class="btn-rec" id="${id}r${i}" style="min-height:38px;padding:0 12px;font-size:.74rem" onclick="dRec('${id}r${i}','${id}p${i}')">🎤</button>
+        <button class="btn-pb" id="${id}p${i}" style="min-height:38px;padding:0 12px;font-size:.74rem" onclick="pBlob('${id}p${i}')">▶</button>
+      </div>
+    </div>`).join('');
+}
+
+// ============================================================
+// ADJ PRACTICE
+// ============================================================
+function renderAdj(){
+  document.getElementById('adjFills').innerHTML=ADJ_FILLS.map((f,i)=>`
+    <div class="fill-wrap" id="afw${i}" style="margin-bottom:9px">
+      <div style="font-size:.88rem;color:var(--dk);font-weight:600;line-height:1.8">${f.q.replace('___',`<input class="fill-inp" id="afi${i}" placeholder="feminine form?" autocomplete="off" autocorrect="off" spellcheck="false">`)}</div>
+    </div>`).join('');
+  document.getElementById('adjMirrors').innerHTML=ADJ_MIRRORS.map((a,i)=>`
+    <div class="mirror-card">
+      <div style="font-weight:800;color:var(--pu);font-size:.86rem">${a.fr}</div>
+      <div style="font-size:.73rem;color:var(--gy);margin-top:2px">${a.en}</div>
+      <div class="aud-row" style="margin-top:7px;gap:6px">
+        <button class="btn-pu" style="min-height:36px;padding:0 10px;font-size:.72rem" onclick="spkText('${a.fr.replace(/'/g,"\\'")}',this)">🔊</button>
+        <button class="btn-rec" id="amr${i}" style="min-height:36px;padding:0 10px;font-size:.72rem" onclick="dRec('amr${i}','amp${i}')">🎤</button>
+        <button class="btn-pb" id="amp${i}" style="min-height:36px;padding:0 10px;font-size:.72rem" onclick="pBlob('amp${i}')">▶</button>
+      </div>
+    </div>`).join('');
+}
+function checkAdj(){
+  let ok=0;
+  ADJ_FILLS.forEach((f,i)=>{
+    const v=document.getElementById('afi'+i).value.trim().toLowerCase(),good=v===f.ans;
+    document.getElementById('afi'+i).classList.toggle('ok',good);document.getElementById('afi'+i).classList.toggle('bad',!good);
+    if(good)ok++;
+  });
+  const fb=document.getElementById('adjFb');fb.style.display='block';
+  const all=ok===ADJ_FILLS.length;
+  fb.style.background=all?'#efffef':'#FFF9EC';fb.style.color=all?'#1a8a45':'#8a5c00';
+  if(all)fb.textContent='🎉 All adjective forms correct! You are mastering French gender agreement.';
+  else{const wrong=ADJ_FILLS.filter((_,i)=>document.getElementById('afi'+i).value.trim().toLowerCase()!==ADJ_FILLS[i].ans);fb.textContent='✅ '+ok+'/'+ADJ_FILLS.length+' correct. Hints: '+wrong.map(f=>f.hint).join(' · ');}
+  showCoach(all?'🏆 Adjective agreement mastered!':'💡 Remember the patterns: -f→-ve · -x→-se · -l→-lle',4500);
+}
+function resetAdj(){ADJ_FILLS.forEach((_,i)=>{const inp=document.getElementById('afi'+i);inp.value='';inp.className='fill-inp';});document.getElementById('adjFb').style.display='none';}
+
+// PLURAL ROWS + PRACTICE
+function renderPlur(){
+  document.getElementById('plurRows').innerHTML=PLUR_DATA.map(p=>`
+    <div class="plur-row">
+      <div class="plur-fr">→ ${p.sing} → <strong>${p.plur}</strong></div>
+      <div class="plur-en">${p.singEn} → ${p.plurEn}</div>
+      <div class="aud-row" style="margin-top:7px;gap:6px">
+        <button class="btn-pu" style="min-height:36px;padding:0 10px;font-size:.72rem" onclick="spkText('${p.sing.replace(/'/g,"\\'")} ${p.plur.replace(/'/g,"\\'")}',this)">🔊 Both</button>
+      </div>
+    </div>`).join('');
+  document.getElementById('plurMirrors').innerHTML=PLUR_MIRRORS.map((m,i)=>`
+    <div class="mirror-card">
+      <div style="font-weight:800;color:var(--pu);font-size:.85rem">${m.fr}</div>
+      <div style="font-size:.72rem;color:var(--gy);margin-top:2px">${m.en}</div>
+      <div class="aud-row" style="margin-top:7px;gap:6px">
+        <button class="btn-pu" style="min-height:36px;padding:0 10px;font-size:.72rem" onclick="spkText('${m.fr.replace(/'/g,"\\'")}',this)">🔊</button>
+        <button class="btn-rec" id="pmr${i}" style="min-height:36px;padding:0 10px;font-size:.72rem" onclick="dRec('pmr${i}','pmp${i}')">🎤</button>
+        <button class="btn-pb" id="pmp${i}" style="min-height:36px;padding:0 10px;font-size:.72rem" onclick="pBlob('pmp${i}')">▶</button>
+      </div>
+    </div>`).join('');
+  document.getElementById('plurFills').innerHTML=PLUR_FILLS.map((f,i)=>`
+    <div class="fill-wrap" id="pfw${i}" style="margin-bottom:9px">
+      <div style="font-size:.88rem;color:var(--dk);font-weight:600;line-height:1.8">${f.q.replace('___',`<input class="fill-inp" id="pfi${i}" placeholder="plural adj?" autocomplete="off" autocorrect="off" spellcheck="false">`)}</div>
+    </div>`).join('');
+}
+function checkPlur(){
+  let ok=0;
+  PLUR_FILLS.forEach((f,i)=>{const v=document.getElementById('pfi'+i).value.trim().toLowerCase(),good=v===f.ans;document.getElementById('pfi'+i).classList.toggle('ok',good);document.getElementById('pfi'+i).classList.toggle('bad',!good);if(good)ok++;});
+  const fb=document.getElementById('plurFb');fb.style.display='block';
+  const all=ok===PLUR_FILLS.length;
+  fb.style.background=all?'#efffef':'#FFF9EC';fb.style.color=all?'#1a8a45':'#8a5c00';
+  if(all)fb.textContent='🎉 Perfect plural agreement! This is one of the hardest things for Anglophones — you did it!';
+  else fb.textContent='✅ '+ok+'/'+PLUR_FILLS.length+'. Hints: '+PLUR_FILLS.filter((_,i)=>document.getElementById('pfi'+i).value.trim().toLowerCase()!==PLUR_FILLS[i].ans).map(f=>f.hint).join(' · ');
+  showCoach(all?'🏆 Plural agreement done!':'💡 Add -s to adjectives in plural — unless they already end in -s or -x!',4500);
+}
+function resetPlur(){PLUR_FILLS.forEach((_,i)=>{const inp=document.getElementById('pfi'+i);inp.value='';inp.className='fill-inp';});document.getElementById('plurFb').style.display='none';}
+
+// ============================================================
+// ERROR CORRECTION
+// ============================================================
+function renderErrors(){
+  document.getElementById('errEx').innerHTML=ERR_EX.map((e,i)=>`
+    <div class="err-line" id="el${i}">
+      <div class="err-q">❌ ${e.wrong}</div>
+      <input class="err-inp" id="ei${i}" placeholder="Write the CORRECT sentence here..." autocomplete="off" autocorrect="off">
+      <div class="err-fb" id="ef${i}"></div>
+    </div>`).join('');
+}
+function checkErrors(){
+  let ok=0;
+  ERR_EX.forEach((e,i)=>{
+    const v=document.getElementById('ei'+i).value.trim();
+    const good=v.toLowerCase()===e.correct.toLowerCase();
+    document.getElementById('ei'+i).classList.toggle('ok',good);document.getElementById('ei'+i).classList.toggle('bad',!good);
+    document.getElementById('el'+i).classList.toggle('ok',good);document.getElementById('el'+i).classList.toggle('bad',!good);
+    const fb=document.getElementById('ef'+i);fb.style.display='block';
+    if(good){fb.style.color='#1a8a45';fb.textContent='✅ Correct! '+e.explanation;}
+    else{fb.style.color='#b03030';fb.textContent='❌ Not quite. Correct sentence: "'+e.correct+'"\n💡 '+e.explanation;}
+    if(good)ok++;
+  });
+  document.getElementById('errFb').style.display='block';
+  document.getElementById('errFb').style.background=ok===ERR_EX.length?'#efffef':'#FFF9EC';
+  document.getElementById('errFb').style.color=ok===ERR_EX.length?'#1a8a45':'#8a5c00';
+  document.getElementById('errFb').textContent=ok===ERR_EX.length?'🎉 All errors found and corrected! You are thinking like a TCF examiner.':'✅ '+ok+'/'+ERR_EX.length+' corrected. Check the explanations above carefully.';
+  showCoach(ok===ERR_EX.length?'🏆 Error correction mastered! This is a genuine TCF skill.':'💡 Read the explanations carefully. Gender and agreement errors are the most common A1 mistakes.',5000);
+}
+function resetErrors(){ERR_EX.forEach((_,i)=>{const inp=document.getElementById('ei'+i);inp.value='';inp.className='err-inp';document.getElementById('el'+i).className='err-line';document.getElementById('ef'+i).style.display='none';});document.getElementById('errFb').style.display='none';}
+
+// TROUS
+function renderTrous(){
+  document.getElementById('trousEx').innerHTML=TROUS.map((t,i)=>`
+    <div class="trous-s" id="ts${i}">
+      <div style="font-size:.7rem;font-weight:800;color:var(--go);margin-bottom:5px">Sentence ${i+1}</div>
+      ${t.before}<input class="trous-inp" id="ta${i}" placeholder="${t.h1}" autocomplete="off" autocorrect="off" spellcheck="false">${t.mid}<input class="trous-inp" id="tb${i}" placeholder="${t.h2}" autocomplete="off" autocorrect="off" spellcheck="false">${t.after}
+      <div class="trous-fb" id="tf${i}"></div>
+    </div>`).join('');
+}
+function checkTrous(){
+  let ok=0,tot=TROUS.length*2;
+  TROUS.forEach((t,i)=>{
+    const a=document.getElementById('ta'+i).value.trim().toLowerCase(),b=document.getElementById('tb'+i).value.trim().toLowerCase();
+    const aok=a===t.b1.toLowerCase(),bok=b===t.b2.toLowerCase();
+    document.getElementById('ta'+i).classList.toggle('ok',aok);document.getElementById('ta'+i).classList.toggle('bad',!aok);
+    document.getElementById('tb'+i).classList.toggle('ok',bok);document.getElementById('tb'+i).classList.toggle('bad',!bok);
+    if(aok)ok++;if(bok)ok++;
+    const fb=document.getElementById('tf'+i);fb.style.display='block';
+    fb.style.color=aok&&bok?'#1a8a45':'#b03030';
+    fb.textContent=aok&&bok?'✅ Both correct!':'❌ Answers: "'+t.b1+'" and "'+t.b2+'"';
+    document.getElementById('ts'+i).classList.toggle('ok',aok&&bok);
+  });
+  const fb=document.getElementById('trousFb');fb.style.display='block';
+  fb.style.background=ok===tot?'#efffef':'#FFF9EC';fb.style.color=ok===tot?'#1a8a45':'#8a5c00';
+  fb.textContent=ok===tot?'🎉 Perfect! All '+tot+' gaps filled correctly. Your listening comprehension is working!':'✅ '+ok+'/'+tot+' correct. Listen again and check the highlighted gaps.';
+  showCoach(ok===tot?'🏆 All gaps correct! Listening + writing = powerful combination.':'💡 Listen one more time. The words are always there if you listen carefully.',5000);
+}
+function resetTrous(){TROUS.forEach((_,i)=>{['ta','tb'].forEach(p=>{const inp=document.getElementById(p+i);inp.value='';inp.className='trous-inp';});document.getElementById('ts'+i).className='trous-s';document.getElementById('tf'+i).style.display='none';});document.getElementById('trousFb').style.display='none';showCoach('🔄 Reset! Listen again and fill the gaps.',3500);}
+
+// ============================================================
+// COPYING ACTIVITIES
+// ============================================================
+function renderCopy(){
+  document.getElementById('copyActivities').innerHTML=COPY_TEXTS.map((c,i)=>`
+    <div class="copy-box">
+      <div style="font-size:.7rem;font-weight:800;color:var(--go);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">📝 Copy Sentence ${i+1}</div>
+      <div style="background:#fff;border-radius:10px;padding:10px 13px;margin-bottom:10px;font-size:.9rem;font-weight:700;color:var(--dk);line-height:1.8;border:2px solid var(--lpu)">${c.text}</div>
+      <div style="font-size:.74rem;color:var(--gy);margin-bottom:8px;font-style:italic">${c.en}</div>
+      <textarea class="copy-inp" id="cp${i}" rows="2" placeholder="Copy the French sentence here exactly..."></textarea>
+      <div class="aud-row" style="margin-top:7px;gap:6px">
+        <button class="btn-pu" style="min-height:38px;padding:0 12px;font-size:.76rem" onclick="spkText('${c.text.replace(/'/g,"\\'")}',this)">🔊 Hear It</button>
+        <button class="btn-gn" style="min-height:38px;padding:0 12px;font-size:.76rem" onclick="checkCopy(${i})">✅ Check Copy</button>
+      </div>
+      <div id="cpfb${i}" style="display:none;margin-top:7px;font-size:.78rem;font-weight:700"></div>
+    </div>`).join('');
+}
+function checkCopy(i){
+  const val=document.getElementById('cp'+i).value.trim();
+  const ok=val===COPY_TEXTS[i].text;
+  const fb=document.getElementById('cpfb'+i);fb.style.display='block';
+  if(ok){fb.style.color='#1a8a45';fb.textContent='✅ Perfect copy! Your spelling is correct. Now read it aloud!';spkText(COPY_TEXTS[i].text,null);}
+  else{
+    const ref=COPY_TEXTS[i].text;let hint='';
+    if(val.length<ref.length)hint='Your copy seems shorter than the original.';
+    else if(val.toLowerCase()===ref.toLowerCase())hint='Almost! Check capitalisation and accents — é, è, ê, à, ô etc.';
+    else hint='Compare word by word with the original above.';
+    fb.style.color='#b03030';fb.textContent='❌ Not an exact match. '+hint;
+  }
+  showCoach(ok?'✅ Perfect copy! Copying trains your spelling muscle.':'💡 Copy exactly — every accent and capital letter matters in French.',4000);
+}
+
+// OWN SENTENCES
+function renderOwn(){
+  document.getElementById('ownSentences').innerHTML=OWN_SENTS.map((f,i)=>`
+    <div style="background:var(--lpulight);border:2px dashed var(--lpu);border-radius:12px;padding:13px;margin-bottom:10px">
+      <div style="font-size:.88rem;font-weight:700;color:var(--pu);margin-bottom:6px;line-height:1.6">${i+1}. ${f.prompt}<span style="color:var(--gy);font-size:.76rem"> (${f.hint})</span></div>
+      <input style="width:100%;border:2px solid #c8b8f0;border-radius:10px;padding:9px 12px;font-size:.9rem;font-family:inherit;outline:none;min-height:44px;transition:border-color .2s" id="os${i}" placeholder="Écrivez ici..." autocomplete="off" autocorrect="off">
+      <div style="font-size:.71rem;color:var(--gy);margin-top:4px">Example: <em>${f.ex}</em></div>
+    </div>`).join('');
+}
+function checkOwn(){
+  const fb=document.getElementById('ownFb');fb.style.display='block';
+  let html='<div style="background:#efffef;border-radius:12px;padding:13px">';
+  OWN_SENTS.forEach((f,i)=>{
+    const val=document.getElementById('os'+i).value.trim();
+    if(!val){html+=`<p style="color:#b03030;font-size:.82rem;margin-bottom:5px">❌ Sentence ${i+1}: Please write something!</p>`;return;}
+    const full=f.prompt+val;
+    html+=`<p style="color:#1a8a45;font-size:.82rem;margin-bottom:3px">✅ <strong>${full}</strong></p>`;
+    html+=`<p style="color:#555;font-size:.75rem;margin-bottom:8px;padding-left:10px">📢 Read it aloud! Does it sound like the family story? If not, compare with the examples.</p>`;
+  });
+  html+='<div style="background:var(--lpulight);border-radius:9px;padding:9px;margin-top:8px;font-size:.78rem;color:var(--pu)">💡 Check: Are your adjectives the correct gender? Male family members → masculine form. Female → feminine form.</div>';
+  html+='</div>';
+  fb.innerHTML=html;
+  const v0=document.getElementById('os0').value.trim();
+  if(v0)setTimeout(()=>spkText(OWN_SENTS[0].prompt+v0,null,0.8),500);
+  showCoach('🎉 Your family in French! Check the gender of your adjectives — this is the most important thing right now.',6000);
+}
+function resetOwn(){OWN_SENTS.forEach((_,i)=>document.getElementById('os'+i).value='');document.getElementById('ownFb').style.display='none';showCoach('🔄 Reset! Write your own family details again.',3500);}
+
+// ============================================================
+// DIALOGUE
+// ============================================================
+function renderDialogue(){
+  document.getElementById('dialPractice').innerHTML=DIALOGUES.map((d,i)=>`
+    <div class="dial-pair">
+      <div style="font-size:.68rem;font-weight:800;color:var(--go);text-transform:uppercase;margin-bottom:8px">Pair ${i+1}</div>
+      <div class="dial-q-box">
+        <div class="dq">Q: ${d.q}</div>
+        <div class="dqe">${d.qe}</div>
+        <div class="aud-row" style="margin-top:7px;gap:6px">
+          <button class="btn-go" style="min-height:36px;padding:0 10px;font-size:.72rem" onclick="spkText('${d.q.replace(/'/g,"\\'")}',this)">🔊 Q</button>
+        </div>
+      </div>
+      <div class="dial-a-box">
+        <div class="da">A: ${d.a}</div>
+        <div class="dae">${d.ae}</div>
+        <div class="da-note">💡 ${d.note}</div>
+        <div class="aud-row" style="margin-top:7px;gap:6px">
+          <button class="btn-pu" style="min-height:36px;padding:0 10px;font-size:.72rem" onclick="spkText('${d.a.replace(/'/g,"\\'")}',this)">🔊 A</button>
+        </div>
+      </div>
+    </div>`).join('');
+  document.getElementById('dialMirrors').innerHTML=DIALOGUES.map((d,i)=>`
+    <div class="mirror-card">
+      <div style="font-weight:700;font-size:.83rem;color:var(--pu)">${d.a}</div>
+      <div class="aud-row" style="margin-top:6px;gap:5px">
+        <button class="btn-pu" style="min-height:36px;padding:0 10px;font-size:.72rem" onclick="spkText('${d.a.replace(/'/g,"\\'")}',this)">🔊</button>
+        <button class="btn-rec" id="dm${i}" style="min-height:36px;padding:0 10px;font-size:.72rem" onclick="dRec('dm${i}','dp${i}')">🎤</button>
+        <button class="btn-pb" id="dp${i}" style="min-height:36px;padding:0 10px;font-size:.72rem" onclick="pBlob('dp${i}')">▶</button>
+      </div>
+    </div>`).join('');
+}
+
+function startSim(mode){
+  simMode=mode;simIdx=0;
+  document.getElementById('start'+(mode==='slow'?'Slow':'Fast')+'Btn').style.display='none';
+  document.getElementById('sim'+mode[0].toUpperCase()+mode.slice(1)).style.display='block';
+  runSim(mode);
+  showCoach(mode==='slow'?'🐢 Slow sim started! Read the answer aloud in 15 seconds.':'⚡ Fast sim! Answer from memory in 10 seconds!',5000);
+}
+function runSim(mode){
+  if(simIdx>=DIALOGUES.length){endSim(mode);return;}
+  const d=DIALOGUES[simIdx],sec=mode==='slow'?15:10;
+  const cid='sim'+mode[0].toUpperCase()+mode.slice(1);
+  document.getElementById(cid).innerHTML=`
+    <div class="sim-q">
+      <div class="sim-progress">${DIALOGUES.map((_,i)=>`<div class="sim-dot ${i<simIdx?'done':i===simIdx?'current':''}"></div>`).join('')}</div>
+      <div style="font-size:.7rem;color:rgba(255,255,255,.5);margin-bottom:8px">Q ${simIdx+1}/${DIALOGUES.length}</div>
+      <div style="font-size:1rem;font-weight:800;color:#fff">${d.q}</div>
+      <div style="font-size:.76rem;color:rgba(255,255,255,.6);margin-top:3px">${d.qe}</div>
+      <div class="sim-timer" id="st">:${sec<10?'0'+sec:sec}</div>
+      ${mode==='slow'?`<div style="background:rgba(255,255,255,.12);border-radius:10px;padding:10px 13px;margin-top:8px;font-size:.86rem;font-weight:700;color:#fff">📖 ${d.a}</div>`:''}
+      <button class="btn-go" style="margin-top:10px;width:100%;justify-content:center;min-height:44px" onclick="nextSim('${mode}')">✅ Next →</button>
+    </div>`;
+  spkText(d.q,null);
+  let t=sec;if(simTimerInt)clearInterval(simTimerInt);
+  simTimerInt=setInterval(()=>{t--;const el=document.getElementById('st');if(!el){clearInterval(simTimerInt);return;}el.textContent=':'+(t<10?'0'+t:t);if(t<=4)el.classList.add('urgent');if(t<=0){clearInterval(simTimerInt);simIdx++;runSim(mode);}},1000);
+}
+function nextSim(mode){clearInterval(simTimerInt);simIdx++;runSim(mode);}
+function endSim(mode){
+  const cid='sim'+mode[0].toUpperCase()+mode.slice(1);
+  document.getElementById(cid).innerHTML=`<div style="background:#efffef;border-radius:14px;padding:16px;text-align:center"><div style="font-size:1.3rem;margin-bottom:7px">🎉</div><div style="font-weight:800;color:#1a8a45">Simulation Complete!</div><div style="font-size:.82rem;color:#555;margin-top:5px">${mode==='slow'?'Now try the fast simulation!':'Excellent! Repeat until the answers flow naturally.'}</div><button class="redo-btn" style="margin-top:10px" onclick="simIdx=0;runSim('${mode}')">🔄 Repeat</button></div>`;
+  showCoach(mode==='slow'?'🎉 Slow sim done! Try the fast one — your brain is ready.':'🏆 Fast sim complete! This is real TCF/TEF Canada oral practice.',5500);
+}
+
+// ============================================================
+// WRITING
+// ============================================================
+function renderChunks(){
+  document.getElementById('chunkGrid').innerHTML=CHUNKS.map(c=>`
+    <div class="chunk" onclick="appendChunk('${c.fr.replace(/'/g,"\\'")}')">
+      <div class="cfr">${c.fr}</div><div class="cen">${c.en}</div>
+    </div>`).join('');
+  document.getElementById('vocabBank').innerHTML=VOCAB_BANK.map(v=>`
+    <div style="background:var(--lpulight);border-radius:50px;padding:5px 12px;cursor:pointer;border:2px solid var(--lpu)" onclick="spkText('${v.fr.replace(/'/g,"\\'")}',null)">
+      <span style="font-weight:800;color:var(--pu);font-size:.79rem">${v.fr}</span>
+      <span style="color:var(--gy);font-size:.71rem"> = ${v.en}</span>
+    </div>`).join('');
+}
+function appendChunk(t){const ta=document.getElementById('wArea');ta.value+=(ta.value&&!ta.value.endsWith(' ')?' ':'')+t;ta.focus();updateWC();showCoach('✅ Added: "'+t+'"',2000);}
+function updateWC(){const t=document.getElementById('wArea').value.trim();document.getElementById('wCount').textContent=(t?t.split(/\s+/).length:0)+' words';}
+function checkWriting(){
+  const t=document.getElementById('wArea').value.trim();
+  if(!t){showCoach('✍️ Write your paragraph first!',3000);return;}
+  const wc=t.split(/\s+/).length;
+  const hasName=/appelle|s'appelle|m'appelle/i.test(t);
+  const hasAge=/ans|vingt|trente|quarante|cinquante/i.test(t);
+  const hasAdj=/grand|petit|intelligent|gentil|sportif|drôle|calme|sérieux|généreux|beau|belle|créatif/i.test(t);
+  const hasFamily=/frère|sœur|père|mère|parents|fils|fille|famille|ami|voisin/i.test(t);
+  const hasEtre=/est|sont/i.test(t);
+  let ok=[],issues=[];
+  if(hasName)ok.push('✅ Names used — great!');else issues.push('💡 Introduce someone: Il/Elle s\'appelle...');
+  if(hasAge)ok.push('✅ Age mentioned');else issues.push('💡 Give an age: Il a [number] ans.');
+  if(hasAdj)ok.push('✅ Adjectives used — excellent!');else issues.push('💡 Use adjectives to describe: grand, gentille, intelligent...');
+  if(hasFamily)ok.push('✅ Family vocabulary present');else issues.push('💡 Name a family member: mon frère, ma sœur, mon père...');
+  if(hasEtre)ok.push('✅ Verb être used correctly');else issues.push('💡 Use est/sont to describe: Il est... / Elle est...');
+  if(wc<25)issues.push('📝 '+wc+' words — try to reach 50+ words for a full TCF paragraph.');
+  const fb=document.getElementById('writeFb');fb.style.display='block';
+  fb.style.background=issues.length===0?'#efffef':'#FFF9EC';
+  fb.innerHTML=ok.map(o=>`<p>${o}</p>`).join('')+(issues.length?'<hr style="margin:8px 0;border-color:#d4b896">'+issues.map(i=>`<p>${i}</p>`).join(''):'');
+  if(issues.length===0)showCoach('🏆 Excellent paragraph! Screenshot it now and share in the community!',6000);
+  else showCoach('💪 Good start! Add the missing elements and check again.',5000);
+  setTimeout(()=>spkText(t,null,0.8),600);
+}
+function copyWriting(){
+  const t=document.getElementById('wArea').value.trim();
+  if(!t){showCoach('Write your paragraph first!',3000);return;}
+  navigator.clipboard.writeText(t).then(()=>{document.getElementById('copyFb').style.display='block';showCoach('📋 Copied! Go to the community and post it as a voice note. Coach Linda will respond!',6000);}).catch(()=>{document.getElementById('copyFb').textContent='📋 Select your text manually and copy it from the writing box above.';document.getElementById('copyFb').style.display='block';});
+}
+
+// TIMER
+function startTimer(){if(timerOn)return;timerOn=true;document.getElementById('timerStart').textContent='⏱️ Writing...';document.getElementById('timerStart').disabled=true;document.getElementById('timerReset').style.display='inline-flex';showCoach('⏱️ Go! Write freely — don\'t stop to translate. You know more than you think!',5000);
+  timerInterval=setInterval(()=>{timerSec--;const m=Math.floor(timerSec/60),s=timerSec%60;document.getElementById('timerDisp').textContent=m+':'+(s<10?'0':'')+s;document.getElementById('timerBar').style.width=(timerSec/240*100)+'%';if(timerSec===60)showCoach('⚡ One minute left! Write your closing sentence.',0);if(timerSec<=0){clearInterval(timerInterval);timerOn=false;document.getElementById('timerDisp').textContent='0:00';document.getElementById('timerStart').textContent='✅ Time Up!';showCoach('🎉 Time up! Screenshot your writing then check grammar.',7000);}},1000);}
+function resetTimer(){clearInterval(timerInterval);timerOn=false;timerSec=240;document.getElementById('timerDisp').textContent='4:00';document.getElementById('timerBar').style.width='100%';document.getElementById('timerStart').textContent='▶️ Start Timer';document.getElementById('timerStart').disabled=false;document.getElementById('timerReset').style.display='none';}
+
+// ============================================================
+// QUIZ
+// ============================================================
+function renderQuiz(){
+  document.getElementById('quizContent').innerHTML=QUIZ_DATA.map((q,i)=>`
+    <div class="qwrap" id="qw${i}">
+      <div class="qtxt">${i+1}. ${q.q}</div>
+      <div class="qopts">${q.opts.map((o,j)=>`<div class="qopt" id="qo${i}_${j}" onclick="selQ(${i},${j})">${o}</div>`).join('')}</div>
+      <div class="qex" id="qe${i}"></div>
+    </div>`).join('');
+}
+function selQ(qi,oi){if(qzDone)return;QUIZ_DATA[qi].opts.forEach((_,j)=>document.getElementById(`qo${qi}_${j}`).className='qopt'+(j===oi?' sel':''));qzSel[qi]=oi;}
+function submitQuiz(){
+  if(qzDone)return;const blank=qzSel.filter(a=>a===null).length;if(blank>0){alert('Please answer all '+blank+' question(s).');return;}
+  qzDone=true;document.getElementById('btnSub').style.display='none';let score=0;
+  QUIZ_DATA.forEach((q,i)=>{const ok=qzSel[i]===q.ans;if(ok)score++;q.opts.forEach((_,j)=>{const b=document.getElementById(`qo${i}_${j}`);b.classList.add('dis');if(j===q.ans)b.classList.add('co');else if(j===qzSel[i]&&!ok)b.classList.add('wo');});const ex=document.getElementById('qe'+i);ex.textContent=q.exp;ex.classList.add('show');});
+  const pass=score>=5;const sc=document.getElementById('scoreCard');sc.style.display='block';
+  sc.innerHTML=`<div class="sc-card" style="background:${pass?'#efffef':'#fff0f0'};border-color:${pass?'var(--gn)':'var(--rd)'}">
+    <div style="font-size:3.5rem;font-weight:900;color:${pass?'var(--gn)':'var(--rd)'}">${score}<span style="font-size:1.5rem;color:var(--gy)">/6</span></div>
+    <div style="font-size:.95rem;font-weight:800;margin:8px 0;color:${pass?'#1a8a45':'#b03030'}">${pass?'🎉 Day 4 Complete! Tu es fantastique!':'📚 Almost! Review adjectives and try again.'}</div>
+    <div style="font-size:.82rem;color:#555;margin-bottom:16px">${pass?'Family vocabulary, adjectives, pluralisation, error correction — all done today!':'Review Activity 3 (adjective agreement) then retake.'}</div>
+    ${pass?`<a href="#platform" style="background:var(--pu);color:#fff;border-radius:50px;padding:10px 22px;font-weight:800;text-decoration:none;font-size:.85rem;display:inline-block">🚀 Continue to Day 5</a>`:`<button onclick="retakeQ()" style="background:var(--rd);color:#fff;border:none;border-radius:50px;padding:10px 22px;font-weight:800;cursor:pointer;font-family:inherit">🔄 Retake</button>`}
+  </div>`;
+  showCoach(pass?'🏆 Day 4 DONE! Family vocab, adjectives, pluralisation, error correction AND dialogue simulation — you just had a real French learning day!':'💪 Almost! Review adjective agreement (masculine = grand, feminine = grande) and retake.',9000);
+  sc.scrollIntoView({behavior:'smooth'});
+}
+function retakeQ(){qzDone=false;qzSel=new Array(QUIZ_DATA.length).fill(null);renderQuiz();document.getElementById('btnSub').style.display='inline-flex';}
+
+// ============================================================
+// RECORDING
+// ============================================================
+async function dRec(recId,pbId){
+  const btn=document.getElementById(recId);if(!btn)return;
+  if(mediaRecs[recId]&&mediaRecs[recId].state==='recording'){mediaRecs[recId].stop();return;}
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true});let chunks=[];const mr=new MediaRecorder(stream);mediaRecs[recId]=mr;
+    mr.ondataavailable=e=>{if(e.data.size>0)chunks.push(e.data);};
+    mr.onstop=()=>{blobs[pbId]=new Blob(chunks,{type:'audio/webm'});stream.getTracks().forEach(t=>t.stop());btn.classList.remove('on');btn.textContent='🎤 Record Again';const pb=document.getElementById(pbId);if(pb)pb.classList.add('show');showCoach('✅ Recorded! Press ▶️ to hear yourself.',3500);};
+    mr.start();btn.classList.add('on');btn.textContent='⏹ Stop Recording';showCoach('🎤 Recording... Speak clearly. Press Stop when done.',0);
+  } catch(e){
+    if(btn.classList.contains('on')){btn.classList.remove('on');btn.textContent='🎤 Record Again';showCoach('✅ Done! Record again.',3000);}
+    else{btn.classList.add('on');btn.textContent='⏹ Stop Recording';showCoach('🎤 Recording... Press Stop when done.',0);}
+  }
+}
+function pBlob(pbId){if(!blobs[pbId])return;const url=URL.createObjectURL(blobs[pbId]);new Audio(url).play();showCoach('👂 Listen to yourself — compare your rhythm to the native speaker. Record again!',5000);}
+
+// ============================================================
+// NAV + DOTS
+// ============================================================
+function goAct(n){
+  document.getElementById('act'+curAct).classList.remove('show');curAct=n;document.getElementById('act'+curAct).classList.add('show');
+  updDots();document.getElementById('progBar').style.width=(((n-1)/7)*100)+'%';
+  window.scrollTo({top:0,behavior:'smooth'});
+  const msgs=["","🎧 Listen first — close your eyes and let the French family sounds in.","👨‍👩‍👧 Tap every card to hear it. Then try the blur quiz!","📚 Adjectives agree with the gender of the person. This is key for TCF/TEF Canada.","🔍 Spot the errors — this is a real TCF Canada skill! Then fill the gaps while listening.","✍️ Copy to train your spelling, then write about YOUR real family.","💬 Practise well before the simulation. Then go for the timed version!","✍️ Final writing challenge. Use the chunks. Screenshot when done. Then take the quiz!"];
+  if(msgs[n])showCoach(msgs[n],6000);
+}
+function buildDots(){document.getElementById('dotsWrap').innerHTML=[1,2,3,4,5,6,7].map(i=>`<div class="dot ${i===1?'active':''}" id="dot${i}" onclick="goAct(${i})">${i}</div>`).join('');}
+function updDots(){for(let i=1;i<=7;i++){const d=document.getElementById('dot'+i);d.className='dot'+(i<curAct?' done':i===curAct?' active':'');}}
+
+// COACH
+function showCoach(msg,dur){const el=document.getElementById('coachMsg');el.textContent=msg;el.classList.add('show');if(cTimer)clearTimeout(cTimer);if(dur>0)cTimer=setTimeout(()=>el.classList.remove('show'),dur);}
+function toggleCoach(){const el=document.getElementById('coachMsg');const msgs=["👨‍👩‍👧 Family vocabulary is one of TCF/TEF Canada's most tested topics. You are building your exam toolkit!","🎤 Every recording makes your pronunciation better — even if you can't hear it yet.","✍️ Writing about real people in your life makes French stick faster.","⭐ Adjective agreement: match the gender. Grand → Grande. Sportif → Sportive.","💪 Error correction is a genuine C1 skill. You started learning it at A1 — you are ahead!","🔄 Redo every activity until it feels easy. Easy = automatic = exam marks.","📸 Don't forget to screenshot your writing and share in the community!"];if(el.classList.contains('show'))el.classList.remove('show');else showCoach(msgs[Math.floor(Math.random()*msgs.length)],5000);}
+
+// INIT
+window.addEventListener('load',()=>{
+  window.speechSynthesis.getVoices();window.speechSynthesis.onvoiceschanged=()=>window.speechSynthesis.getVoices();
+  buildDots();renderVerbFills();renderUbar('ubar1','ubar1fb');
+  renderVocabGrids();renderLineMirrors('lineMir1',LINE_MIR1);
+  renderAdj();renderPlur();
+  renderErrors();renderTrous();renderUbar('ubar2','ubar2fb');
+  renderCopy();renderLineMirrors('copyMirrors',COPY_MIRRORS);renderOwn();
+  renderDialogue();
+  renderChunks();renderLineMirrors('finalMirrors',FINAL_MIRRORS);
+  renderQuiz();
+  setTimeout(()=>showCoach('👨‍👩‍👧 Bienvenue Day 4! Today — family vocabulary, adjectives, error correction, texte à trous, dialogue simulation, and writing. A full French workout!',8000),800);
+});
+</script>
+</body>
+</html>
